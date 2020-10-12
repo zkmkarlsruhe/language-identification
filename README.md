@@ -1,26 +1,29 @@
 # Repo Name
 "WHAT is it doing?"
  
-This prototype has been developed by Hertz-Lab as part of the project [»The Intelligent Museum«](#the-intelligent-museum). 
-Please raise issues, ask questions, throw in ideas or submit code as this repository is intended to be an open platform to collaboratively improve the results on this task.
+This code base has been developed by Hertz-Lab as part of the project [»The Intelligent Museum«](#the-intelligent-museum). 
+Please raise issues, ask questions, throw in ideas or submit code as this repository is intended to be an open platform to collaboratively improve "XXXXX"
 
-### Features
+##### Target Platform
+Tested under Ubuntu 18.04 using python 3.7 and tensorflow 2.3
+
+##### Features
 * can do this and that
 * achieves blablabla
 
-### Structure
+##### Structure
 * folder1/: does that
-* folder2/: can this
+* folder2/: has this
 
 ## Installation
-Install Anaconda 3 and create a virtual environment
+Download and Install [Anaconda](https://www.anaconda.com/products/individual). Afterwards create a virtual environment:
 ```
 $ conda create -n "name" python=3.7
 $ conda activate "name"
 $ pip install -r requirements.txt
 ```
 
-### Additional Software 
+#### Additional Software 
 ```
 $ sudo apt install howaboutthat
 ```
@@ -29,6 +32,10 @@ $ sudo apt install howaboutthat
 ##### show help
 ```
 $ python executable.py --help
+```
+##### scenario 1
+```
+$ python executable.py --parameter 42
 ```
 
 ## Further Reading
@@ -40,7 +47,7 @@ use a License
 
 ## Contribute
 Contributions are very welcome!
-Please send an email to bethge@zkm.de
+Please send an email to author@zkm.de
 
 ## The Intelligent Museum
 An artistic-curatorial field of experimentation for deep learning and visitor participation
