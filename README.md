@@ -1,7 +1,7 @@
 # Repo Name
 "WHAT is it doing?"
  
-This code base has been developed by Hertz-Lab as part of the project [»The Intelligent Museum«](#the-intelligent-museum). 
+This code base has been developed by ZKM | Hertz-Lab as part of the project [»The Intelligent Museum«](#the-intelligent-museum). 
 Please raise issues, ask questions, throw in ideas or submit code as this repository is intended to be an open platform to collaboratively improve "XXXXX"
 
 ##### Target Platform
