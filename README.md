@@ -1,8 +1,8 @@
 # Repo Name
-"WHAT is it doing?"
+"Short Description WHAT is it doing?"
  
 This code base has been developed by [ZKM | Hertz-Lab](https://zkm.de/en/about-the-zkm/organization/hertz-lab) as part of the project [»The Intelligent Museum«](#the-intelligent-museum). 
-Please raise issues, ask questions, throw in ideas or submit code as this repository is intended to be an open platform to collaboratively improve "XXXXX"
+Please raise issues, ask questions, throw in ideas or submit code, as this repository is intended to be an open platform to collaboratively improve "TOPIC NAME"
 
 ##### Target Platform
 Tested under Ubuntu 18.04 using python 3.7 and tensorflow 2.3
