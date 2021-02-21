@@ -1,0 +1,20 @@
+train_dir: "/home/foo/Drives/Data1TB/spectrograms/lang5_pad_data_aug_train/"
+val_dir: "/home/foo/Drives/Data1TB/spectrograms/lang5_pad_data_aug_val/"
+
+languages: ['english', 'french', 'german', 'russian', 'spanish'] # in alphanumeric order
+
+audio_length_s: 10
+len_segment_ms: 20
+input_shape: [129, 500, 1]
+color_mode: "grayscale"
+audio_feature: "spectrogram"
+seed: 123
+
+zero_center_img: False
+remap_img: None
+
+batch_size: 32
+learning_rate: 0.001
+num_epochs: 20
+
+model: "eff"
