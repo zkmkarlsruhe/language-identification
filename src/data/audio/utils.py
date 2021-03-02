@@ -4,6 +4,14 @@ import numpy as np
 FORMAT = {1: "b", 2: "h", 4: "i"}
 
 
+def pad(data, max_len, type):
+        if type == "Silence":
+            return pad_with_silence(data, max_len)
+        elif type == "Data":
+            return pad_with_data(data, max_len)
+        else:
+            return pad_with_noise(data, max_len)
+
 def pad_with_silence(data, max_len):
     to_add = max(max_len - len(data), 0)
     padded = np.pad(data, (0, to_add), mode='constant', constant_values=0)

@@ -1,10 +1,11 @@
-import argparse
-import pydub
 import os
+import pydub
+import argparse
 import threading
-import scipy.io.wavfile as wav
 import numpy as np
-from data.wav.chop_up import chop_up_audio
+import scipy.io.wavfile as wav
+
+from data.audio.chop_up import chop_up_audio
 
 def sentence_is_too_short(sentence_len, language):
     if language == "mandarin":

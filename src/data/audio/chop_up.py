@@ -104,7 +104,6 @@ def chop_up_audio( file_name, desired_length_s = 10,
     return audio_cuttings
 
 
-
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Remove silence form wav-files')

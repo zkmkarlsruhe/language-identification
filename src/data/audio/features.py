@@ -1,11 +1,12 @@
-import python_speech_features as feat
-import scipy.io.wavfile as wav
-import numpy as np
-from imageio import imwrite, imread
+
 import os
-from subprocess import Popen, PIPE, STDOUT
 import random
 
+import numpy as np
+import python_speech_features as feat
+import scipy.io.wavfile as wav
+from imageio import imwrite, imread
+from subprocess import Popen, PIPE, STDOUT
 
 def normalize(signal):
     """

@@ -5,19 +5,20 @@ import nlpaug.augmenter.audio as naa
 class AudioAugmenter(object):
     def __init__(self, fs):
         self._fs = fs
-        shift = naa.ShiftAug(sampling_rate=fs, direction="random", duration=0.5)
-        crop = naa.CropAug(sampling_rate=fs, zone=(0, 0.8), coverage=0.1)
-        vltp = naa.VtlpAug(sampling_rate=fs, zone=(0.2, 0.8), coverage=1, duration=None, fhi=4800, factor=(0.9, 1.1))
-        noise = naa.NoiseAug(zone=(0.0, 1.0), coverage=1.0, color='white')
-        # speed = naa.SpeedAug(zone=(0.2, 0.8), coverage=0.1, factor=(0.9, 1.1))
-        # pitch = naa.PitchAug(sampling_rate=16000, zone=(0, 1), coverage=0.3, duration=None, factor=(0, 2.1))
+        shift = naa.ShiftAug(sampling_rate=fs, direction='random', duration=0.2)
+        crop = naa.CropAug(sampling_rate=fs, zone=(0.2, 0.8), coverage=0.02)
+        vltp = naa.VtlpAug(sampling_rate=fs, zone=(0.2, 0.8), coverage=0.8, 
+                            fhi=4800, factor=(0.9, 1.1))
+        noise = naa.NoiseAug(zone=(0.0, 1.0), coverage=1, color='white')
+        # speed = naa.SpeedAug(zone=(0.0, 1.0), coverage=0.1, factor=(0.9, 1.1))
+        # pitch = naa.PitchAug(sampling_rate=16000, zone=(0, 1), coverage=0.3, factor=(0, 2.1))
         self._aug_flow = flow.Sequential([
             shift,
             crop,
             vltp,
-            noise,
-            # speed,
+            speed,
             # pitch,
+            noise,
         ])
 
     def augment_audio_array(self, signal, fs):

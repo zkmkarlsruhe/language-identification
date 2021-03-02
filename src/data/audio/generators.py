@@ -20,7 +20,7 @@ def recursive_glob(path, pattern):
 
 
 class AudioGenerator(object):
-    def __init__(self, source, target_length_s, shuffle=True, run_only_once=True, dtype="float32", minimum_length=0.1):
+    def __init__(self, source, target_length_s, shuffle=True, run_only_once=True, dtype="float32", minimum_length=0.5):
         """
         A class for generating audio samples of equal length either from directory or file
 
@@ -66,7 +66,7 @@ class AudioGenerator(object):
                     slice_start = int(i * target_length)
                     slice_end = int(slice_start + target_length)
                     rest = len(audio) - slice_start
-                    # if we have only one segment left and there is at least 10% data pad it with silence
+                    # if we have only one segment left and there is at least minimum_length% data pad it with silence
                     if i == num_segments:
                         if rest >= target_length * self.minimum_length:
                             chunk = pad_with_silence(audio[slice_start:], target_length)

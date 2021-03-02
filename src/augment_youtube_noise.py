@@ -4,7 +4,7 @@ import os
 import numpy as np
 import scipy.io.wavfile as wav
 
-from wav.generators import AudioGenerator
+from data.audio.generators import AudioGenerator
 
 
 def augment_noise(args):
@@ -32,7 +32,6 @@ def augment_noise(args):
             os.makedirs(wav_dir)
 
     for i in range(num_files):
-
         data, fs, _ = next(generator_queues[0])
         for j in range(1, num_generators):
             data_other, fs_other, _ = next(generator_queues[j])
