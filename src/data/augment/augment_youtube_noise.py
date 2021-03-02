@@ -4,7 +4,7 @@ import os
 import numpy as np
 import scipy.io.wavfile as wav
 
-from generators import AudioGenerator
+from wav.generators import AudioGenerator
 
 
 def augment_noise(args):
