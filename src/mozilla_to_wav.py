@@ -124,7 +124,7 @@ if __name__ == '__main__':
     # required=True,
                         default="../res",
                         help="directory to receive converted clips of all languages")
-    parser.add_argument("--total_chops", type=list, default=[-1, -1, -1],
+    parser.add_argument("--total_chops", type=int, nargs=3, default=[-1, -1, -1],
                         help="amount of wav chops to be produced per split")
     parser.add_argument("--allowed_downvotes", type=int, default=0,
                         help="amount of downvotes allowed")
