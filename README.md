@@ -1,53 +1,80 @@
-# Repo Name
-"Short Description WHAT is it doing?"
- 
-This code base has been developed by [ZKM | Hertz-Lab](https://zkm.de/en/about-the-zkm/organization/hertz-lab) as part of the project [»The Intelligent Museum«](#the-intelligent-museum). 
-Please raise issues, ask questions, throw in ideas or submit code, as this repository is intended to be an open platform to collaboratively improve "TOPIC NAME"
+# Language Identification System
+A playground to test and experiment with spoken languages identification. 
 
-##### Target Platform
-Tested under Ubuntu 18.04 using python 3.7 and tensorflow 2.3
+This repository extracts language examples from Mozilla's open speech corpus 
+[Common Voice](https://commonvoice.mozilla.org/).
+Feel free to contribute your voice and expertise to the corpus. Furthermore, Google's audio scene dataset 
+[AudioSet](https://research.google.com/audioset/dataset/index.html) 
+can be used to extract noise data to enhance the robustness of the model. 
+ 
+This code base has been developed by Hertz-Lab as part of the project [»The Intelligent Museum«](#the-intelligent-museum). 
+Please raise issues, ask questions, throw in ideas or submit code as this repository is intended to be an open platform to collaboratively improve the task of spoken language identification (lid).
+
+##### Target Platform:
+* Ubuntu 18.04 Desktop
+* MacOS 10.15 (Installation may differ)
 
 ##### Features
-* can do this and that
-* achieves blablabla
+* Input may be WAV files or microphone
+* Parameterizable Acoustic Activation Detection
+* Enable neural network to identify language
+* Disable neural network for dataset creation
+* Pretrained model which detects French, Spanish, English, German and Russian
+* Scripts for dataset creation and augmentation
+* Possible features: MFCC, Mel-scaled filter banks, spectrogram
 
 ##### Structure
-* folder1/: does that
-* folder2/: has this
+- lid_client/: source code for the lid application
+- lid_network/: training process and model defenitions
+- data/: a collection of scripts to download and process datasets
 
 ## Installation
-Download and Install [Anaconda](https://www.anaconda.com/products/individual). Afterwards create a virtual environment:
+
+### Ubuntu
+Download and install [Anaconda](https://www.anaconda.com/products/individual). Afterwards create a virtual environment
 ```
 $ conda create -n "name" python=3.7
 $ conda activate "name"
-$ pip install -r requirements.txt
+$ pip3 install -r requirements.txt
 ```
 
-#### Additional Software 
+##### Additional Software 
+- ffmpeg, sox and portAudio
 ```
-$ sudo apt install howaboutthat
+$ sudo apt install ffmpeg sox libasound-dev portaudio19-dev
 ```
-
+- youtube-dl (version > 2020)
+```
+$ sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
+$ sudo chmod a+rx /usr/local/bin/youtube-dl
+```
 ## Usage
 ##### show help
 ```
-$ python executable.py --help
+$ python lid.py --help
 ```
-##### scenario 1
+##### microphone input
 ```
-$ python executable.py --parameter 42
+$ python lid.py
+```
+##### WAV-file input
+```
+$ python lid.py --file_name test/paul_deutsch.wav
 ```
 
 ## Further Reading
-* [paper](www.google.com)
-* [paper2](www.google.com)
+* [Speech Features](https://haythamfayek.com/2016/04/21/speech-processing-for-machine-learning.html)
+* [CRNN-LID](https://github.com/HPI-DeepLearning/crnn-lid)
+
 
 ## License
-use a License
+GPLv3 see `LICENSE` for more information.
+
 
 ## Contribute
 Contributions are very welcome!
-Please send an email to author@zkm.de
+Please send an email to bethge@zkm.de
+
 
 ## The Intelligent Museum
 An artistic-curatorial field of experimentation for deep learning and visitor participation

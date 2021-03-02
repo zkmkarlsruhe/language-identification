@@ -125,7 +125,7 @@ if __name__ == "__main__":
     cli_args = parser.parse_args()
 
     # Start a spectrogram generator for each class
-    # Each generator will scan a directory for audio files and convert them to spectrogram images
+    # Each generator will scan a directory for audio files and convert them to images
     # adjust this if you have other categories or any category is missing
     categories = [
         "russian",
