@@ -137,14 +137,12 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     languages = [
-        {"lang": "vot", "dir": "vot"},
-        {"lang": "vot2", "dir": "vot2"},
-        # {"lang": "english", "dir": "en"},
-        # {"lang": "german", "dir": "de"},
-        # {"lang": "french", "dir": "fr"},
-        # {"lang": "spanish", "dir": "es"},
-        # {"lang": "mandarin", "dir": "zh-CN"},
-        # {"lang": "russian", "dir": "ru"},
+        {"lang": "english", "dir": "en"},
+        {"lang": "german", "dir": "de"},
+        {"lang": "french", "dir": "fr"},
+        {"lang": "spanish", "dir": "sp"},
+        {"lang": "mandarin", "dir": "zh-CN"},
+        {"lang": "russian", "dir": "ru"},
         # {"lang": "unknown", "dir": "ja"},
         # {"lang": "unknown", "dir": "ar"},
         # {"lang": "unknown", "dir": "ta"},
