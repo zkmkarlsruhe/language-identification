@@ -128,7 +128,7 @@ if __name__ == '__main__':
                         help="amount of wav chops to be produced per split")
     parser.add_argument("--allowed_downvotes", type=int, default=0,
                         help="amount of downvotes allowed")
-    parser.add_argument("--run_as_thread", type=bool, default=True,
+    parser.add_argument("--run_as_thread", type=bool, default=False,
                         help="whether to use multiprocessing")
     parser.add_argument("--remove_raw", type=bool, default=True,
                         help="whether to remove intermediate file")
