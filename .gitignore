@@ -1,6 +1,7 @@
 
 # Data
 data/common_voice
+data/simple
 
 # Python
 __pycache__

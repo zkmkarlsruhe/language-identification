@@ -51,7 +51,7 @@ def tokenize_audio(data, tokenizer, block_size, leading_pause):
 
 
 def chop_up_audio( file_name, desired_length_s = 10,
-                    min_length = 300, max_length = 600, max_silence = 200,
+                    min_length = 300, max_length = 1000, max_silence = 200,
                     sample_width = 2, threshold = 60, padding = "Silence",
                     audio_window_ms = 10, leading_pause = 5):
 

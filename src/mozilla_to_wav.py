@@ -128,7 +128,7 @@ if __name__ == '__main__':
                         help="amount of wav chops to be produced per split")
     parser.add_argument("--allowed_downvotes", type=int, default=0,
                         help="amount of downvotes allowed")
-    parser.add_argument("--run_as_thread", type=bool, default=False,
+    parser.add_argument("--run_as_thread", type=bool, default=True,
                         help="whether to use multiprocessing")
     parser.add_argument("--remove_raw", type=bool, default=True,
                         help="whether to remove intermediate file")
@@ -140,7 +140,7 @@ if __name__ == '__main__':
         {"lang": "english", "dir": "en"},
         {"lang": "german", "dir": "de"},
         {"lang": "french", "dir": "fr"},
-        {"lang": "spanish", "dir": "sp"},
+        {"lang": "spanish", "dir": "es"},
         {"lang": "mandarin", "dir": "zh-CN"},
         {"lang": "russian", "dir": "ru"},
         # {"lang": "unknown", "dir": "ja"},
