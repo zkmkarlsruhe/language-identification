@@ -13,7 +13,7 @@ from tensorflow.keras.metrics import Precision, Recall, CategoricalAccuracy
 from tensorflow.keras.models import load_model
 
 import models
-from utils import *
+from utils.utils import *
 
 
 def train(config_path, log_dir, model_path):

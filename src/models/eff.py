@@ -1,7 +1,7 @@
 from tensorflow.keras.layers import GlobalAveragePooling2D, Dropout
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.models import Model
-from tensorflow.keras.applications import EfficientNetB1
+from tensorflow.keras.applications import EfficientNetB7
 
 NAME = "EFFICIENTNET"
 
@@ -9,7 +9,7 @@ NAME = "EFFICIENTNET"
 def create_model(config):
 
     input_shape = config["input_shape"]
-    inception_model = EfficientNetB1(input_shape=input_shape,
+    inception_model = EfficientNetB7(input_shape=input_shape,
                                      include_top=False,
                                      weights=None,
                                      )
