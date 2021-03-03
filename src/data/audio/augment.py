@@ -16,7 +16,7 @@ class AudioAugmenter(object):
             shift,
             crop,
             vltp,
-            speed,
+            # speed,
             # pitch,
             noise,
         ])
