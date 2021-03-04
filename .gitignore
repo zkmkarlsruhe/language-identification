@@ -1,7 +1,5 @@
 
-# Data
-data/common_voice
-data/simple
+logs/
 
 # Python
 __pycache__
