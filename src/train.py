@@ -120,7 +120,8 @@ def train(config_path, log_dir, model_path):
     return checkpoint_filename.replace("{epoch:02d}", "{:02d}".format(best_epoch))
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": 
+    tf.config.list_physical_devices('GPU')
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_path', default=None)
     parser.add_argument('--config', default="config.yaml")
