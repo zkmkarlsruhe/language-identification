@@ -1,5 +1,5 @@
-train_dir: "/home/foo/Drives/Data1TB/spectrograms/lang5_pad_data_aug_train/"
-val_dir: "/home/foo/Drives/Data1TB/spectrograms/lang5_pad_data_aug_val/"
+train_dir: "/data/datasets/simple/train"
+val_dir: "/data/datasets/simple/dev"
 
 languages: ['english', 'french', 'german', 'russian', 'spanish'] # in alphanumeric order
 
@@ -13,7 +13,7 @@ seed: 123
 zero_center_img: False
 remap_img: None
 
-batch_size: 32
+batch_size: 64
 learning_rate: 0.001
 num_epochs: 20
 
