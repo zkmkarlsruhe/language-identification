@@ -66,7 +66,7 @@ class AudioGenerator(object):
                     slice_start = int(i * target_length)
                     slice_end = int(slice_start + target_length)
                     rest = len(audio) - slice_start
-                    # if we have only one segment left and there is at least minimum_length% data pad it with silence
+                    # if we have only one segment left and there is at least minimum_length data pad it with silence
                     if i == num_segments:
                         if rest >= target_length * self.minimum_length:
                             chunk = pad_with_silence(audio[slice_start:], target_length)

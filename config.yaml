@@ -1,20 +1,50 @@
+
+# Mozilla to Wav 1 
+cv_dir: ""
+cv_filtered_dir: ""
+max_chops: 50000 3000 3000
+allowed_downvotes: 0
+audio_length_s: 10
+sample_rate: 16000
+sample_width: 2
+parallelize_moz: True
+remove_raw: True
+
+languages: # in alphanumeric order
+  - lang: "english"
+    dir: "en"
+  - lang: "french"
+    dir: "fr"
+  - lang: "german"
+    dir: "de"
+  - lang: "mandarin"
+    dir: "zh-CN"
+  - lang: "russian"
+    dir: "ru"
+  - lang: "spanish"
+    dir: "es"
+
+# Audio Feature and Augmentation
+
+source:
+len_segment_ms: 20
+run_as_thread: True
+wav_dir: None       #give path for intermediate wavs
+augment_nu: 5
+img_dir: 
+feature_type: "spectrogram"
+
+
+# Training
 train_dir: "/data/datasets/simple/train"
 val_dir: "/data/datasets/simple/dev"
-
-languages: ['english', 'french', 'german', 'russian', 'spanish'] # in alphanumeric order
-
-audio_length_s: 10
-len_segment_ms: 20
-input_shape: [129, 500, 1]
-color_mode: "grayscale"
-audio_feature: "spectrogram"
-seed: 123
-
 zero_center_img: False
 remap_img: None
-
+input_shape: [129, 500, 1]
+color_mode: "grayscale"
+seed: 123
 batch_size: 64
 learning_rate: 0.001
 num_epochs: 20
-
 model: "eff"
+

@@ -15,19 +15,19 @@ def process_audio_dir(
     source_dir,
     wav_dir = None,
     img_dir = None,
-    target_length_s = 10,
+    audio_length_s = 10,
     augment = True,
     augment_nu = 5,
     feature_type = "mfcc",
     frame_size_ms = "20",
-    feature_nu = 10):
+    feature_nu = 12):
 
 
     # create generators
     generator = AudioGenerator(source=os.path.join(source_dir, language),
-                                 target_length_s=target_length_s,
-                                 dtype="float32",
-                                 shuffle=True, run_only_once=True)
+                                target_length_s=audio_length_s,
+                                dtype="float32",
+                                shuffle=True, run_only_once=True)
 
     generator_queue = generator.get_generator()
 
@@ -45,11 +45,11 @@ def process_audio_dir(
             file_name = os.path.split(file_name)[-1]
 
             # augment the data chunks
-            if augment:
+            if augment_nu > 0:
                 augmenter = AudioAugmenter(fs)
                 for k in range(augment_nu):
                     data_aug = augmenter.augment_audio_array(signal=data, fs=fs)
-                    data_aug = pad_with_silence(data_aug, target_length_s * fs)
+                    data_aug = pad_with_silence(data_aug, audio_length_s * fs)
                     data_aug = normalize(data_aug)
                     data_list.append(data_aug)
 
@@ -91,19 +91,16 @@ if __name__ == "__main__":
     parser.add_argument('--source', type=str,
                         required=True,
                         help="directory to search for language folders")
-    parser.add_argument('--target_length_s', type=int, default=10,
+    parser.add_argument('--audio_length_s', type=int, default=10,
                         help="length of the audio window to process in seconds")
-    parser.add_argument("--run_as_thread", action="store_true", default=False,
+    parser.add_argument("--parallelize_processes", action="store_true", default=False,
                         help="whether to use multiprocessing")
-
-
+    # Augment arguments
     parser.add_argument('--wav_dir', type=str, default=None,
                         help="directory to save processed wav files")
-    parser.add_argument('--augment', action='store_true', default=False,
-                        help="whether to augment the data")
     parser.add_argument('--augment_nu', type=int, default=3,
                         help="number of augmentations to do per file found")
-
+    # Feature arguments
     parser.add_argument('--img_dir', type=str, default=None,
                         help="directory to save audio features as .png files to")
     parser.add_argument('--feature_type', choices=("mfcc", "logfbank", "logfbankenergy", "spectrogram"),
@@ -113,8 +110,17 @@ if __name__ == "__main__":
                         help="length of an audio frame to compute features from in milliseconds")
     parser.add_argument('--feature_nu', type=int, default=40,
                         help="amount of features to compute per audio frame")
+
+    parser.add_argument('--config_path', default=None)
     args = parser.parse_args()
 
+    # if args.config_path:
+    #     config = load(open(args.config_path, "rb"))
+    #     if config is None:
+    #         print("Please provide a config.")
+    #     input_dir = config["common_voice_dir"]
+    #     output_dir = config["chopped_wavs"]
+    #     max_chops = config["max_chops"]
 
     # Start a spectrogram generator for each class
     # Each generator will scan a directory for audio files and convert them to images
@@ -143,18 +149,18 @@ if __name__ == "__main__":
                 os.makedirs(output_dir)
 
         function_args = (language, args.source, temp_dir, output_dir,
-                        args.target_length_s, args.augment, args.augment_nu, 
+                        args.audio_length_s, args.augment_nu, 
                         args.feature_type , args.feature_frame_size_ms, args.feature_nu)
 
         print(function_args)
         
-        if args.run_as_thread:
+        if args.parallelize_processes:
             threads.append( threading.Thread(target=process_audio_dir, args=function_args,
                                             daemon=True) )
         else:
             process_audio_dir(*function_args)
 
-    if args.run_as_thread:
+    if args.parallelize_processes:
         for t in threads:
             t.start()
         for t in threads:

@@ -5,6 +5,8 @@ import threading
 import numpy as np
 import scipy.io.wavfile as wav
 
+import shutil
+from yaml import load
 from data.audio.chop_up import chop_up_audio
 
 def sentence_is_too_short(sentence_len, language):
@@ -14,8 +16,9 @@ def sentence_is_too_short(sentence_len, language):
         return sentence_len < 10
 
 
-def traverse_csv(language, input_dir, output_dir, total_chops, allowed_downvotes,
-                remove_raw):
+def traverse_csv(language, input_dir, output_dir, max_chops, 
+                desired_audio_length_s, sample_rate, sample_width,
+                allowed_downvotes, remove_raw):
 
     lang = language["lang"]
     lang_abb = language["dir"]
@@ -42,7 +45,7 @@ def traverse_csv(language, input_dir, output_dir, total_chops, allowed_downvotes
         # keep track of files handled
         processed_files = 0
         produced_files = 0
-        to_produce = total_chops[split_index]
+        to_produce = max_chops[split_index]
         done = False
 
         # open mozillas' dataset file
@@ -78,16 +81,18 @@ def traverse_csv(language, input_dir, output_dir, total_chops, allowed_downvotes
                         # convert mp3 to wav
                         audio = pydub.AudioSegment.from_mp3(mp3_path)
                         audio = pydub.effects.normalize(audio)
-                        audio = audio.set_frame_rate(16000)
+                        audio = audio.set_frame_rate(sample_rate)
                         audio = audio.set_channels(1)
-                        audio = audio.set_sample_width(2)
+                        audio = audio.set_sample_width(sample_width)
                         audio.export(wav_path_raw, format="wav")
                         processed_files += 1
 
                         # chop up the samples and write to file
                         rand_int = np.random.randint(low=0, high=2)
                         padding_choice = ["Data", "Silence"][rand_int]
-                        chips = chop_up_audio (wav_path_raw, padding=padding_choice)
+                        chips = chop_up_audio (wav_path_raw, padding=padding_choice,
+                                            desired_length_s=desired_audio_length_s,
+                                            sample_width=sample_width)
                         for chip in chips:
                             wav_path = os.path.join(output_dir_wav, chip[0] + ".wav")
                             wav.write(wav_path, chip[1], chip[2])
@@ -117,44 +122,72 @@ def traverse_csv(language, input_dir, output_dir, total_chops, allowed_downvotes
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input_dir", type=str, 
-    # required=True,
-                        default="../data",
+    parser.add_argument("--cv_dir", type=str, required=True,
                         help="directory containing all languages")
-    parser.add_argument("--output_dir", type=str, 
-    # required=True,
-                        default="../res",
+    parser.add_argument("--cv_filtered_dir", type=str, default="../res",
                         help="directory to receive converted clips of all languages")
-    parser.add_argument("--total_chops", type=int, nargs=3, default=[-1, -1, -1],
+    # Data 
+    parser.add_argument("--max_chops", type=int, nargs=3, default=[-1, -1, -1],
                         help="amount of wav chops to be produced per split")
     parser.add_argument("--allowed_downvotes", type=int, default=0,
                         help="amount of downvotes allowed")
-    parser.add_argument("--run_as_thread", type=bool, default=True,
+    # Audio file properties
+    parser.add_argument("--audio_length_s", type=int, default=10,
+                        help="length of wav files being produced")
+    parser.add_argument("--sample_rate", type=int, default=16000,
+                        help="sample rate of files being produced")
+    parser.add_argument('--sample_width', type=int, default=2, choices=(1, 2, 4),
+                        help='number of bytes per sample')
+    parser.add_argument("--use_random_padding", type=bool, default=True,
+                        help="whether to randomly use silence or data padding")
+    # System
+    parser.add_argument("--parallelize_moz", type=bool, default=True,
                         help="whether to use multiprocessing")
     parser.add_argument("--remove_raw", type=bool, default=True,
                         help="whether to remove intermediate file")
-    parser.add_argument("--use_random_padding", type=bool, default=True,
-                        help="whether to use randomly silence or data padding")
+    parser.add_argument('--config_path', default=None)
     args = parser.parse_args()
-
-    languages = [
-        {"lang": "english", "dir": "en"},
-        {"lang": "german", "dir": "de"},
-        {"lang": "french", "dir": "fr"},
-        {"lang": "spanish", "dir": "es"},
-        {"lang": "mandarin", "dir": "zh-CN"},
-        {"lang": "russian", "dir": "ru"},
-        # {"lang": "unknown", "dir": "ja"},
-        # {"lang": "unknown", "dir": "ar"},
-        # {"lang": "unknown", "dir": "ta"},
-        # {"lang": "unknown", "dir": "pt"},
-        # {"lang": "unknown", "dir": "tr"},
-        # {"lang": "unknown", "dir": "it"},
-        # {"lang": "unknown", "dir": "uk"},
-        # {"lang": "unknown", "dir": "el"},
-        # {"lang": "unknown", "dir": "id"},
-        # {"lang": "unknown", "dir": "fy-NL"},
-    ]
+    
+    if args.config_path:
+        config = load(open(args.config_path, "rb"))
+        if config is None:
+                print("Could not find config file")
+        else:
+            args.cv_dir = config["cv_dir"]
+            args.cv_filtered_dir = config["cv_filtered_dir"]
+            args.max_chops = config["max_chops"]
+            args.allowed_downvotes = config["allowed_downvotes"]
+            args.audio_length_s = config["audio_length_s"] 
+            args.sample_rate = config["sample_rate"]
+            args.sample_width = config["sample_width"]
+            args.parallelize_moz = config["parallelize_moz"]
+            args.remove_raw = config["remove_raw"]
+            languages = config["languages"]
+            print(languages)
+            
+            # copy config to output dir
+            if not os.path.exists(args.cv_filtered_dir):
+                os.makedirs(args.cv_filtered_dir)
+            shutil.copy(args.config_path, args.cv_filtered_dir)
+    else:
+        languages = [
+            {"lang": "english", "dir": "en"},
+            {"lang": "german", "dir": "de"},
+            {"lang": "french", "dir": "fr"},
+            {"lang": "spanish", "dir": "es"},
+            {"lang": "mandarin", "dir": "zh-CN"},
+            {"lang": "russian", "dir": "ru"},
+            # {"lang": "unknown", "dir": "ja"},
+            # {"lang": "unknown", "dir": "ar"},
+            # {"lang": "unknown", "dir": "ta"},
+            # {"lang": "unknown", "dir": "pt"},
+            # {"lang": "unknown", "dir": "tr"},
+            # {"lang": "unknown", "dir": "it"},
+            # {"lang": "unknown", "dir": "uk"},
+            # {"lang": "unknown", "dir": "el"},
+            # {"lang": "unknown", "dir": "id"},
+            # {"lang": "unknown", "dir": "fy-NL"},
+        ]
 
     # count the number of unknown languages
     # unknown = 0
@@ -167,13 +200,13 @@ if __name__ == '__main__':
     threads = []
     count = 0
     for language in languages:
-        # clips_per_language = args.total_chops
+        # clips_per_language = args.max_chops
         # if language["lang"] == "unknown":
         #     clips_per_language = number_unknown
-        function_args = (language, args.input_dir, args.output_dir,
-                        args.total_chops, args.allowed_downvotes,
-                        args.remove_raw)
-        if args.run_as_thread:
+        function_args = (language, args.cv_dir, args.cv_filtered_dir, args.max_chops, 
+                        args.audio_length_s, args.sample_rate, args.sample_width, 
+                        args.allowed_downvotes, args.remove_raw)
+        if args.parallelize_moz:
             threads.append(threading.Thread(target=traverse_csv, args=function_args,
                                             daemon=True) )
             threads[count].start()
@@ -181,6 +214,6 @@ if __name__ == '__main__':
             traverse_csv(*function_args)
         count += 1
 
-    if args.run_as_thread:
+    if args.parallelize_moz:
         for t in threads:
             t.join()

@@ -75,7 +75,7 @@ def train(config_path, log_dir, model_path):
     val_ds = val_ds.prefetch(tf.data.experimental.AUTOTUNE)
 
     # Training Callbacks
-    checkpoint_filename = os.path.join(log_dir, "weights.{epoch:02d}")
+    checkpoint_filename = os.path.join(log_dir, "trained_models", "weights.{epoch:02d}")
     model_checkpoint_callback = ModelCheckpoint(checkpoint_filename, save_best_only=True, verbose=1,
                                                 monitor="val_categorical_accuracy",
                                                 save_weights_only=False)
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     print("Logging to {}".format(log_dir))
 
     # copy models & config for later
-    shutil.copytree("models", log_dir)
+    shutil.copytree("models", os.path.join(log_dir, "models"))
     shutil.copy(cli_args.config, log_dir)
 
     model_file_name = train(cli_args.config, log_dir, cli_args.model_path)

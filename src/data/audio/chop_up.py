@@ -51,9 +51,12 @@ def tokenize_audio(data, tokenizer, block_size, leading_pause):
 
 
 def chop_up_audio( file_name, desired_length_s = 10,
-                    min_length = 300, max_length = 1000, max_silence = 200,
+                    min_length = 300, max_silence = 200,
                     sample_width = 2, threshold = 60, padding = "Silence",
                     audio_window_ms = 10, leading_pause = 5):
+    
+    max_length = desired_length_s / audio_window_ms * 1000
+    assert(min_length <= max_length)
 
     # open wav-file stream
     audio_source = ADSFactory.ads(filename=file_name, sw=sample_width, 
@@ -107,12 +110,16 @@ def chop_up_audio( file_name, desired_length_s = 10,
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Remove silence form wav-files')
-
+    # Audio Source
+    parser.add_argument('--file_name', type=str, required= True,
+                        help='file name to read from')
+    parser.add_argument('--sample_width', type=int, default=2, choices=(1, 2, 4),
+                        help='number of bytes per sample')
+    parser.add_argument('--audio_window_ms', type=int, default=10,
+                        help='length of an audio frame in milliseconds')
     # Tokenization
     parser.add_argument('--min_length', type=int, default=300,
                         help='minimum number of valid audio frames')
-    parser.add_argument('--max_length', type=int, default=1000,
-                        help='maximum number of audio frames for the same token')
     parser.add_argument('--max_silence', type=int, default=200,
                         help='maximum number of silent audio frames inside one token')
     parser.add_argument('--energy_threshold', type=float, default=60, 
@@ -120,23 +127,11 @@ if __name__ == '__main__':
     # Buffering
     parser.add_argument('--leading_pause', type=int, default=5,
                         help='number of audio frames to add in front if an event is detected')
-    # Audio Source
-    parser.add_argument('--file_name', type=str,
-                        default="../../../test/wav/paul_deutsch.wav",
-                        help='filename to read from')
-    parser.add_argument('--max_time', type=int, default=None,
-                        help='maximum recording time')
-    # parser.add_argument('--sound_device', type=int, default=0,
-    #                     help='choose which input device to record from')
-    parser.add_argument('--sample_width', type=int, default=2, choices=(1, 2, 4),
-                        help='number of bytes per sample')
-    parser.add_argument('--audio_window_ms', type=int, default=10,
-                        help='length of an audio frame in milliseconds')
     # Neural Network Preprocessing
     padding_choices = ("Silence", "Data", "Noise")
     parser.add_argument('--padding', type=str, default="Data", choices=padding_choices,
                         help='whether to pad extracted tokens  with silence, data or noise')
-    parser.add_argument('--nn_input_len_s', type=int, default=10,
+    parser.add_argument('--audio_length_s', type=int, default=10,
                         help='desired output length')
     # Other
     parser.add_argument('--output_dir', type=str, default="./",
@@ -155,16 +150,16 @@ if __name__ == '__main__':
 
     # tokenization parameters
     min_length = args.min_length
-    max_length = args.max_length
     max_silence = args.max_silence
+    # desired length should not be smaller than the max length of a token
 
-    nn_input_len_s = args.nn_input_len_s
+    audio_length_s = args.audio_length_s
     padding = args.padding
 
     # others
     output_dir = args.output_dir
 
-    chunk = chop_up_audio(file_name, nn_input_len_s, min_length, max_length, max_silence,
+    chunk = chop_up_audio(file_name, audio_length_s, min_length, max_length, max_silence,
                 sample_width, threshold, padding, audio_window_ms, leading_pause)
     
     for item in chunk:
