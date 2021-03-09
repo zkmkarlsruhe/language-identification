@@ -1,6 +1,7 @@
 import os
 import argparse
 import threading
+import shutil
 
 import scipy.io.wavfile as wav
 from imageio import imwrite
@@ -11,9 +12,9 @@ from audio.features import signal_to_features, normalize
 
 
 def process_audio_dir(
-    language,
-    source_dir,
-    wav_dir = None,
+    lang,
+    wav_dir,
+    aug_dir = None,
     img_dir = None,
     audio_length_s = 10,
     augment = True,
@@ -22,16 +23,21 @@ def process_audio_dir(
     frame_size_ms = "20",
     feature_nu = 12):
 
+    # create dirs
+    if not os.path.exists(aug_dir):
+        os.makedirs(aug_dir)
+    if not os.path.exists(img_dir):
+        os.makedirs(img_dir)
 
     # create generators
-    generator = AudioGenerator(source=os.path.join(source_dir, language),
+    generator = AudioGenerator(source=os.path.join(wav_dir, lang),
                                 target_length_s=audio_length_s,
                                 dtype="float32",
                                 shuffle=True, run_only_once=True)
 
     generator_queue = generator.get_generator()
 
-    print(wav_dir)
+    print(aug_dir)
     print(img_dir)
 
     # generate and process audio chunks
@@ -54,12 +60,12 @@ def process_audio_dir(
                     data_list.append(data_aug)
 
             # save audio chunks as wav files
-            if wav_dir:
+            if aug_dir:
                 for k, audio in enumerate(data_list):
                     if k == 0:
-                        file_name_temp = os.path.join(wav_dir, file_name[:-4] + "{}".format(i) +".wav")
+                        file_name_temp = os.path.join(aug_dir, file_name[:-4] + "{}".format(i) +".wav")
                     else:
-                        file_name_temp = os.path.join(wav_dir, file_name[:-4] + "{}_aug{}".format(i, k) + ".wav")
+                        file_name_temp = os.path.join(aug_dir, file_name[:-4] + "{}_aug{}".format(i, k) + ".wav")
                     wav.write(file_name_temp, fs, audio)
 
             # for all chunks compute features and save images to target directory
@@ -81,14 +87,14 @@ def process_audio_dir(
                 print("Processed {} audio chunks".format(i))
 
         except StopIteration:
-            print("language '{}' Stopped on {}".format(language, i))
+            print("language '{}' Stopped on {}".format(lang, i))
             break
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     
-    parser.add_argument('--source', type=str,
+    parser.add_argument('--wav_dir', type=str,
                         required=True,
                         help="directory to search for language folders")
     parser.add_argument('--audio_length_s', type=int, default=10,
@@ -96,7 +102,7 @@ if __name__ == "__main__":
     parser.add_argument("--parallelize_processes", action="store_true", default=False,
                         help="whether to use multiprocessing")
     # Augment arguments
-    parser.add_argument('--wav_dir', type=str, default=None,
+    parser.add_argument('--aug_dir', type=str, default=None,
                         help="directory to save processed wav files")
     parser.add_argument('--augment_nu', type=int, default=3,
                         help="number of augmentations to do per file found")
@@ -114,53 +120,87 @@ if __name__ == "__main__":
     parser.add_argument('--config_path', default=None)
     args = parser.parse_args()
 
-    # if args.config_path:
-    #     config = load(open(args.config_path, "rb"))
-    #     if config is None:
-    #         print("Please provide a config.")
-    #     input_dir = config["common_voice_dir"]
-    #     output_dir = config["chopped_wavs"]
-    #     max_chops = config["max_chops"]
+    if args.config_path:
+        config = load(open(args.config_path, "rb"))
+        if config is None:
+                print("Could not find config file")
+                exit(-1)
+        args.wav_dir = config["wav_dir"]
+        args.audio_length_s = config["audio_length_s"]
+        args.parallelize_processes = config["parallelize_processes"]
+        args.aug_dir = config["aug_dir"]
+        args.augment_nu = config["augment_nu"]
+        args.img_dir = config["img_dir"]
+        args.feature_type = config["feature_type"]
+        args.feature_nu = config["feature_nu"]
+        languages = config["languages"]
 
+        # copy config to output dirs
+        if args.aug_dir:
+            if not os.path.exists(args.aug_dir):
+                os.makedirs(args.aug_dir)
+            shutil.copy(args.config_path, args.aug_dir)
+        if args.img_dir:
+            if not os.path.exists(args.img_dir):
+                os.makedirs(args.img_dir)
+            shutil.copy(args.config_path, args.img_dir)
+
+    else:
+        languages = [
+            {"lang": "english", "dir": "en"},
+            {"lang": "german", "dir": "de"},
+            {"lang": "french", "dir": "fr"},
+            {"lang": "spanish", "dir": "es"},
+            {"lang": "mandarin", "dir": "zh-CN"}
+        ]
     # Start a spectrogram generator for each class
     # Each generator will scan a directory for audio files and convert them to images
-    # adjust this if you have other languages or any language is missing
-    languages = [
-        "english",
-        "german",
-        "french",
-        "spanish",
-    ]
-    
-    threads = []
-    count = 0
-    # create dirs
-    for language in languages:
-        temp_dir = None
-        output_dir = None
-        if args.wav_dir:
-            temp_dir = os.path.join(args.wav_dir, language)
-            if not os.path.exists(temp_dir):
-                os.makedirs(temp_dir)
-        if args.img_dir:
-            output_dir = os.path.join(args.img_dir, language)
-            if not os.path.exists(output_dir):
-                os.makedirs(output_dir)
-
-        function_args = (language, args.source, temp_dir, output_dir,
-                        args.audio_length_s, args.augment_nu, 
-                        args.feature_type , args.feature_frame_size_ms, args.feature_nu)
-
-        print(function_args)
+    if args.wav_dir == None:
+        print("No wave source dir provided!")
+        exit(-1)
         
-        if args.parallelize_processes:
-            threads.append( threading.Thread(target=process_audio_dir, args=function_args,
-                                            daemon=True) )
-        else:
-            process_audio_dir(*function_args)
+    if args.img_dir == None:
+        print("Please provide an output dir")
+        exit(-1)
+            
 
-    if args.parallelize_processes:
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
+    splits = ["train", "dev", "test"]
+    for split_index, split in enumerate(splits):
+        wav_dir = os.path.join(args.wav_dir, split)
+        threads = []
+        count = 0
+        # augmentation is only ment for training purposes
+        if split == "train":
+            aug_dir = args.aug_dir
+            augment_nu = args.augment_nu
+        else: 
+            aug_dir = None
+            augment_nu = 0
+
+        img_dir = os.path.join(args.img_dir, split)
+        
+        for language in languages:
+            lang = language["lang"]
+            # append language to output paths
+            aug_lang_dir = None
+            if aug_dir:
+                aug_lang_dir = os.path.join(aug_dir, lang)
+            img_lang_dir = os.path.join(img_dir, lang)
+
+            function_args = (lang, wav_dir, aug_lang_dir, img_lang_dir,
+                            args.audio_length_s, args.augment_nu, 
+                            args.feature_type , args.feature_frame_size_ms, args.feature_nu)
+
+            print(function_args)
+            
+            if args.parallelize_processes:
+                threads.append( threading.Thread(target=process_audio_dir, args=function_args,
+                                                daemon=True) )
+            else:
+                process_audio_dir(*function_args)
+
+        if args.parallelize_processes:
+            for t in threads:
+                t.start()
+            for t in threads:
+                t.join()

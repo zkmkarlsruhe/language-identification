@@ -152,6 +152,7 @@ if __name__ == '__main__':
         config = load(open(args.config_path, "rb"))
         if config is None:
                 print("Could not find config file")
+                exit(-1)
         else:
             args.cv_dir = config["cv_dir"]
             args.cv_filtered_dir = config["cv_filtered_dir"]
@@ -163,7 +164,6 @@ if __name__ == '__main__':
             args.parallelize_moz = config["parallelize_moz"]
             args.remove_raw = config["remove_raw"]
             languages = config["languages"]
-            print(args)
             
             # copy config to output dir
             if not os.path.exists(args.cv_filtered_dir):
