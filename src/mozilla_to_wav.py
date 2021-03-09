@@ -45,7 +45,7 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
         # keep track of files handled
         processed_files = 0
         produced_files = 0
-        to_produce = max_chops[split_index]
+        to_produce = int(max_chops[split_index])
         done = False
 
         # open mozillas' dataset file
@@ -122,7 +122,7 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cv_dir", type=str, required=True,
+    parser.add_argument("--cv_dir", type=str, default=None,
                         help="directory containing all languages")
     parser.add_argument("--cv_filtered_dir", type=str, default="../res",
                         help="directory to receive converted clips of all languages")
@@ -163,7 +163,7 @@ if __name__ == '__main__':
             args.parallelize_moz = config["parallelize_moz"]
             args.remove_raw = config["remove_raw"]
             languages = config["languages"]
-            print(languages)
+            print(args)
             
             # copy config to output dir
             if not os.path.exists(args.cv_filtered_dir):
