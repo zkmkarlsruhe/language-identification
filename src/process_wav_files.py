@@ -126,7 +126,6 @@ if __name__ == "__main__":
     # Each generator will scan a directory for audio files and convert them to images
     # adjust this if you have other languages or any language is missing
     languages = [
-        "russian",
         "english",
         "german",
         "french",

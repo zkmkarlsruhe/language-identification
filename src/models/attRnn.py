@@ -12,7 +12,7 @@ NAME = "ATTENTIONRNN"
 def create_model(config):
 
     input_shape = config["input_shape"]
-    inputs = Input(input_shape=input_shape, name='input')
+    inputs = Input(shape=input_shape, name='input')
 
 
     # x = Normalization2D(int_axis=0, name='mel_stft_norm')(x)
@@ -33,9 +33,9 @@ def create_model(config):
     # keras.backend.squeeze(x, axis)
     x = Lambda(lambda q: K.squeeze(q, -1), name='squeeze_last_dim')(x)
 
-    x = Bidirectional(rnn_func(64, return_sequences=True)
+    x = Bidirectional(LSTM(64, return_sequences=True)
                         )(x)  # [b_s, seq_len, vec_dim]
-    x = Bidirectional(rnn_func(64, return_sequences=True)
+    x = Bidirectional(LSTM(64, return_sequences=True)
                         )(x)  # [b_s, seq_len, vec_dim]
 
     xFirst = Lambda(lambda q: q[:, -1])(x)  # [b_s, vec_dim]
@@ -51,7 +51,7 @@ def create_model(config):
     x = Dense(64, activation='relu')(attVector)
     x = Dense(32)(x)
 
-    output = Dense(nCategories, activation='softmax', name='output')(x)
+    output = Dense(len(config["languages"]), activation='softmax', name='output')(x)
 
     model = Model(inputs=[inputs], outputs=[output])
 
