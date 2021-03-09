@@ -5,7 +5,7 @@ import shutil
 
 import scipy.io.wavfile as wav
 from imageio import imwrite
-
+from yaml import load
 from audio.generators import AudioGenerator, pad_with_silence
 from audio.augment import AudioAugmenter
 from audio.features import signal_to_features, normalize
@@ -17,15 +17,15 @@ def process_audio_dir(
     aug_dir = None,
     img_dir = None,
     audio_length_s = 10,
-    augment = True,
     augment_nu = 5,
     feature_type = "mfcc",
     frame_size_ms = "20",
     feature_nu = 12):
 
     # create dirs
-    if not os.path.exists(aug_dir):
-        os.makedirs(aug_dir)
+    if aug_dir:
+        if not os.path.exists(aug_dir):
+            os.makedirs(aug_dir)
     if not os.path.exists(img_dir):
         os.makedirs(img_dir)
 
@@ -94,8 +94,7 @@ def process_audio_dir(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     
-    parser.add_argument('--wav_dir', type=str,
-                        required=True,
+    parser.add_argument('--wav_dir', type=str, default=None,
                         help="directory to search for language folders")
     parser.add_argument('--audio_length_s', type=int, default=10,
                         help="length of the audio window to process in seconds")
@@ -188,7 +187,7 @@ if __name__ == "__main__":
             img_lang_dir = os.path.join(img_dir, lang)
 
             function_args = (lang, wav_dir, aug_lang_dir, img_lang_dir,
-                            args.audio_length_s, args.augment_nu, 
+                            args.audio_length_s, augment_nu, 
                             args.feature_type , args.feature_frame_size_ms, args.feature_nu)
 
             print(function_args)
