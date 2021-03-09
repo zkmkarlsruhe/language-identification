@@ -122,6 +122,8 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('--config_path', default=None,
+                        help="path to the config yaml file. When given, arguments will be ignored")
     parser.add_argument("--cv_dir", type=str, default=None,
                         help="directory containing all languages")
     parser.add_argument("--cv_filtered_dir", type=str, default="../res",
@@ -145,32 +147,33 @@ if __name__ == '__main__':
                         help="whether to use multiprocessing")
     parser.add_argument("--remove_raw", type=bool, default=True,
                         help="whether to remove intermediate file")
-    parser.add_argument('--config_path', default=None)
     args = parser.parse_args()
     
+    # overwrite arguments when configf is given
     if args.config_path:
         config = load(open(args.config_path, "rb"))
         if config is None:
                 print("Could not find config file")
                 exit(-1)
         else:
-            args.cv_dir = config["cv_dir"]
-            args.cv_filtered_dir = config["cv_filtered_dir"]
-            args.max_chops = config["max_chops"]
+            args.cv_dir            = config["cv_dir"]
+            args.cv_filtered_dir   = config["cv_filtered_dir"]
+            args.max_chops         = config["max_chops"]
             args.allowed_downvotes = config["allowed_downvotes"]
-            args.audio_length_s = config["audio_length_s"] 
-            args.sample_rate = config["sample_rate"]
-            args.sample_width = config["sample_width"]
-            args.parallelize_moz = config["parallelize_moz"]
-            args.remove_raw = config["remove_raw"]
-            languages = config["languages"]
+            args.audio_length_s    = config["audio_length_s"] 
+            args.sample_rate       = config["sample_rate"]
+            args.sample_width      = config["sample_width"]
+            args.parallelize_moz   = config["parallelize_moz"]
+            args.remove_raw        = config["remove_raw"]
+            language_table         = config["language_table"]
             
             # copy config to output dir
             if not os.path.exists(args.cv_filtered_dir):
                 os.makedirs(args.cv_filtered_dir)
             shutil.copy(args.config_path, args.cv_filtered_dir)
+
     else:
-        languages = [
+        language_table = [
             {"lang": "english", "dir": "en"},
             {"lang": "german", "dir": "de"},
             {"lang": "french", "dir": "fr"},
@@ -198,22 +201,28 @@ if __name__ == '__main__':
     #     number_unknown = args.number // unknown
 
     threads = []
-    count = 0
-    for language in languages:
+    for language in language_table:
+
         # clips_per_language = args.max_chops
         # if language["lang"] == "unknown":
         #     clips_per_language = number_unknown
+        
+        # prepare arguments
         function_args = (language, args.cv_dir, args.cv_filtered_dir, args.max_chops, 
                         args.audio_length_s, args.sample_rate, args.sample_width, 
                         args.allowed_downvotes, args.remove_raw)
+        
+        # process current language for all splits
         if args.parallelize_moz:
             threads.append(threading.Thread(target=traverse_csv, args=function_args,
                                             daemon=True) )
-            threads[count].start()
         else:
             traverse_csv(*function_args)
         count += 1
 
+    # wait for threads to end
     if args.parallelize_moz:
+        for t in threads:
+            t.start()
         for t in threads:
             t.join()

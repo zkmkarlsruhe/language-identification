@@ -2,24 +2,12 @@
 # Mozilla to Wav 1 
 wav_dir: "../../data/common_voice_filtered/test/wav"
 audio_length_s: 10
-parallelize_processes: True
+parallelize_pro: True
 aug_dir: "../../data/augmented/test"
 augment_nu: 4
 img_dir: "../../data/datasets/test"
 feature_type: spectrogram
 feature_nu: 90
 
-
-languages: # in alphanumeric order
-  - lang: "english"
-    dir: "en"
-  - lang: "french"
-    dir: "fr"
-  - lang: "german"
-    dir: "de"
-  - lang: "mandarin"
-    dir: "zh-CN"
-  - lang: "russian"
-    dir: "ru"
-  - lang: "spanish"
-    dir: "es"
+ # in alphanumeric order
+languages: ["english", "french", "german", "spanish"]

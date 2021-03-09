@@ -29,16 +29,12 @@ def process_audio_dir(
     if not os.path.exists(img_dir):
         os.makedirs(img_dir)
 
-    # create generators
+    # create generator
     generator = AudioGenerator(source=os.path.join(wav_dir, lang),
                                 target_length_s=audio_length_s,
                                 dtype="float32",
                                 shuffle=True, run_only_once=True)
-
     generator_queue = generator.get_generator()
-
-    print(aug_dir)
-    print(img_dir)
 
     # generate and process audio chunks
     i = 0
@@ -94,11 +90,15 @@ def process_audio_dir(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     
+    parser.add_argument('--config_path', default=None,
+                        help="path to the config yaml file. When given, arguments will be ignored")
     parser.add_argument('--wav_dir', type=str, default=None,
                         help="directory to search for language folders")
     parser.add_argument('--audio_length_s', type=int, default=10,
                         help="length of the audio window to process in seconds")
-    parser.add_argument("--parallelize_processes", action="store_true", default=False,
+    parser.add_argument('--languages', type=str, nargs='+',default=None,
+                        help="languages to process")
+    parser.add_argument("--parallelize_pro", action="store_true", default=False,
                         help="whether to use multiprocessing")
     # Augment arguments
     parser.add_argument('--aug_dir', type=str, default=None,
@@ -116,23 +116,23 @@ if __name__ == "__main__":
     parser.add_argument('--feature_nu', type=int, default=40,
                         help="amount of features to compute per audio frame")
 
-    parser.add_argument('--config_path', default=None)
     args = parser.parse_args()
 
+    # overwrite arguments when configf is given
     if args.config_path:
         config = load(open(args.config_path, "rb"))
         if config is None:
                 print("Could not find config file")
                 exit(-1)
-        args.wav_dir = config["wav_dir"]
-        args.audio_length_s = config["audio_length_s"]
-        args.parallelize_processes = config["parallelize_processes"]
-        args.aug_dir = config["aug_dir"]
-        args.augment_nu = config["augment_nu"]
-        args.img_dir = config["img_dir"]
-        args.feature_type = config["feature_type"]
-        args.feature_nu = config["feature_nu"]
-        languages = config["languages"]
+        args.wav_dir         = config["wav_dir"]
+        args.audio_length_s  = config["audio_length_s"]
+        args.parallelize_pro = config["parallelize_pro"]
+        args.aug_dir         = config["aug_dir"]
+        args.augment_nu      = config["augment_nu"]
+        args.img_dir         = config["img_dir"]
+        args.feature_type    = config["feature_type"]
+        args.feature_nu      = config["feature_nu"]
+        args.languages       = config["languages"]
 
         # copy config to output dirs
         if args.aug_dir:
@@ -144,30 +144,22 @@ if __name__ == "__main__":
                 os.makedirs(args.img_dir)
             shutil.copy(args.config_path, args.img_dir)
 
-    else:
-        languages = [
-            {"lang": "english", "dir": "en"},
-            {"lang": "german", "dir": "de"},
-            {"lang": "french", "dir": "fr"},
-            {"lang": "spanish", "dir": "es"},
-            {"lang": "mandarin", "dir": "zh-CN"}
-        ]
-    # Start a spectrogram generator for each class
-    # Each generator will scan a directory for audio files and convert them to images
+    # assertions
     if args.wav_dir == None:
         print("No wave source dir provided!")
         exit(-1)
-        
     if args.img_dir == None:
         print("Please provide an output dir")
         exit(-1)
-            
+
 
     splits = ["train", "dev", "test"]
-    for split_index, split in enumerate(splits):
+    for split in splits:
+        
+        # append paths with current split 
         wav_dir = os.path.join(args.wav_dir, split)
-        threads = []
-        count = 0
+        img_dir = os.path.join(args.img_dir, split)
+
         # augmentation is only ment for training purposes
         if split == "train":
             aug_dir = args.aug_dir
@@ -175,30 +167,30 @@ if __name__ == "__main__":
         else: 
             aug_dir = None
             augment_nu = 0
-
-        img_dir = os.path.join(args.img_dir, split)
         
-        for language in languages:
-            lang = language["lang"]
-            # append language to output paths
+        threads = []
+        for language in args.languages:
+
+            # append paths with current language
             aug_lang_dir = None
             if aug_dir:
-                aug_lang_dir = os.path.join(aug_dir, lang)
-            img_lang_dir = os.path.join(img_dir, lang)
+                aug_lang_dir = os.path.join(aug_dir, language)
+            img_lang_dir = os.path.join(img_dir, language)
 
-            function_args = (lang, wav_dir, aug_lang_dir, img_lang_dir,
-                            args.audio_length_s, augment_nu, 
-                            args.feature_type , args.feature_frame_size_ms, args.feature_nu)
-
-            print(function_args)
+            # prepare arguments
+            function_args = (language, wav_dir, aug_lang_dir, img_lang_dir,
+                            args.audio_length_s, augment_nu, args.feature_type,
+                            args.feature_frame_size_ms, args.feature_nu)
             
-            if args.parallelize_processes:
+            # process current language for current split
+            if args.parallelize_pro:
                 threads.append( threading.Thread(target=process_audio_dir, args=function_args,
                                                 daemon=True) )
             else:
                 process_audio_dir(*function_args)
 
-        if args.parallelize_processes:
+        # wait for threads to end
+        if args.parallelize_pro:
             for t in threads:
                 t.start()
             for t in threads:

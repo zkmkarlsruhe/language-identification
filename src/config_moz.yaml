@@ -10,7 +10,7 @@ sample_width: 2
 parallelize_moz: True
 remove_raw: True
 
-languages: # in alphanumeric order
+language_table:
   - lang: "english"
     dir: "en"
   - lang: "french"
