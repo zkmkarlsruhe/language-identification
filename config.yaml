@@ -1,5 +1,5 @@
-train_dir: "/data/datasets/simple/train"
-val_dir: "/data/datasets/simple/dev"
+train_dir: "/data/datasets/spectrogram/simple/train"
+val_dir: "/data/datasets/spectrogram/simple/dev"
 
 languages: ['english', 'french', 'german', 'russian', 'spanish'] # in alphanumeric order
 
@@ -13,8 +13,8 @@ seed: 123
 zero_center_img: False
 remap_img: None
 
-batch_size: 64
+batch_size: 512
 learning_rate: 0.001
 num_epochs: 20
 
-model: "eff"
+model: "attRnn"

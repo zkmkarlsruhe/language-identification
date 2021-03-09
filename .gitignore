@@ -1,4 +1,6 @@
-/data/
+trained_models/
+
+data/
 
 logs/
 
