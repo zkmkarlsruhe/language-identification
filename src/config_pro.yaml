@@ -6,8 +6,8 @@ parallelize_pro: True
 aug_dir: "../../data/augmented/test"
 augment_nu: 4
 img_dir: "../../data/datasets/test"
-feature_type: spectrogram
-feature_nu: 90
+feature_type: "mfcc"
+feature_nu: 12
 
  # in alphanumeric order
 languages: ["english", "french", "german", "spanish"]

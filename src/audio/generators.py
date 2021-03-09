@@ -126,10 +126,11 @@ class LIDGenerator(object):
         the generator yields audio and label
         """
         while True:
-            rand_int = random.randint(0, len(self.languages))
+            rand_int = random.randint(0, len(self.languages) -1)
             try:
-                audio, fs, name = next(self.generators[rand_int])
-                yield [audio, self.languages[rand_int]]
+                audio, fs, name = next(self.pipelines[rand_int])
+                onehot = [i == rand_int for i in range(0, len(self.languages))]
+                yield [audio, self.languages[rand_int], onehot]
             except Exception as e:
                 print("LIDGenerator Exception: ", e)
                 break
@@ -137,12 +138,13 @@ class LIDGenerator(object):
 
 if __name__ == "__main__":
 
-    source = ""
+    source = "../../../data/augmented/test/"
     b = LIDGenerator(source, 10, True, ["spanish", "english"])
     gen = b.get_generator()
-    for audio, label in gen:
+    for audio, label, onehot in gen:
         print(audio)
         print(label)
+        print(onehot)
 
 
     a = AudioGenerator("../lid_client/test/", 10, shuffle=True, run_only_once=True)

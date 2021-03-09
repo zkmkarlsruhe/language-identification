@@ -218,7 +218,6 @@ if __name__ == '__main__':
                                             daemon=True) )
         else:
             traverse_csv(*function_args)
-        count += 1
 
     # wait for threads to end
     if args.parallelize_moz:
