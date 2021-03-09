@@ -102,8 +102,8 @@ class LIDGenerator(object):
 
         :param source: directory containing directories for each language
         :param target_length_s: the length of the desired audio chunks in seconds
+        :param languages: a list of sub directories containing audio
         :param shuffle: whether to shuffle the list of the directory content before processing
-        :param run_only_once: whether to stop after all chunks have been yielded once
         :param dtpye: type of output
         :param minimum_length: minimum length of the audio chunk in percentage
         """
@@ -144,7 +144,7 @@ if __name__ == "__main__":
         print(audio)
         print(label)
 
-        
+
     a = AudioGenerator("../lid_client/test/", 10, shuffle=True, run_only_once=True)
     gen = a.get_generator()
 
