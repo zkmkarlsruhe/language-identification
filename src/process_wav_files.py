@@ -5,9 +5,9 @@ import threading
 import scipy.io.wavfile as wav
 from imageio import imwrite
 
-from data.audio.generators import AudioGenerator, pad_with_silence
-from data.audio.augment import AudioAugmenter
-from data.audio.features import signal_to_features, normalize
+from audio.generators import AudioGenerator, pad_with_silence
+from audio.augment import AudioAugmenter
+from audio.features import signal_to_features, normalize
 
 
 def process_audio_dir(

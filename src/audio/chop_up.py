@@ -14,7 +14,7 @@ import time
 
 from auditok import ADSFactory, AudioEnergyValidator, StreamTokenizer, BufferAudioSource
 
-from .utils import pad_with_data, pad_with_noise, pad_with_silence, to_array
+from audio.utils import pad_with_data, pad_with_noise, pad_with_silence, to_array
 
 
 
@@ -159,7 +159,7 @@ if __name__ == '__main__':
     # others
     output_dir = args.output_dir
 
-    chunk = chop_up_audio(file_name, audio_length_s, min_length, max_length, max_silence,
+    chunk = chop_up_audio(file_name, audio_length_s, min_length, max_silence,
                 sample_width, threshold, padding, audio_window_ms, leading_pause)
     
     for item in chunk:

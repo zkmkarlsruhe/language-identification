@@ -7,7 +7,7 @@ import scipy.io.wavfile as wav
 
 import shutil
 from yaml import load
-from data.audio.chop_up import chop_up_audio
+from audio.chop_up import chop_up_audio
 
 def sentence_is_too_short(sentence_len, language):
     if language == "mandarin":
