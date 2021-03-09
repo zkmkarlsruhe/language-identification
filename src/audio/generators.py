@@ -1,4 +1,5 @@
 import os
+import random
 import numpy as np
 import fnmatch
 import scipy.io.wavfile as wav
@@ -94,8 +95,56 @@ class AudioGenerator(object):
         return len(self.files)
 
 
+class LIDGenerator(object):
+    def __init__(self, source, target_length_s, shuffle=True, languages=[], dtype="float32"):
+        """
+        A class for generating audio samples of equal length either from directory or file
+
+        :param source: directory containing directories for each language
+        :param target_length_s: the length of the desired audio chunks in seconds
+        :param shuffle: whether to shuffle the list of the directory content before processing
+        :param run_only_once: whether to stop after all chunks have been yielded once
+        :param dtpye: type of output
+        :param minimum_length: minimum length of the audio chunk in percentage
+        """
+        self.source = source
+        self.shuffle = shuffle
+        self.target_length_s = target_length_s
+        self.languages = languages
+        self.dtype = dtype
+        if len(languages) == 0:
+            print("Please provide at least one language")
+        self.generators = [AudioGenerator(source=os.path.join(source, language), 
+                                    target_length_s=target_length_s, dtype=dtype,
+                                    shuffle=shuffle) 
+                                    for language in languages]
+        self.pipelines = [gen.get_generator() for gen in self.generators]
+
+    def get_generator(self):
+        """
+        returns a generator that iterates over the source directories given in self.languages
+        the generator yields audio and label
+        """
+        while True:
+            rand_int = random.randint(0, len(self.languages))
+            try:
+                audio, fs, name = next(self.generators[rand_int])
+                yield [audio, self.languages[rand_int]]
+            except Exception as e:
+                print("LIDGenerator Exception: ", e)
+                break
+
+
 if __name__ == "__main__":
 
+    source = ""
+    b = LIDGenerator(source, 10, True, ["spanish", "english"])
+    gen = b.get_generator()
+    for audio, label in gen:
+        print(audio)
+        print(label)
+
+        
     a = AudioGenerator("../lid_client/test/", 10, shuffle=True, run_only_once=True)
     gen = a.get_generator()
 
