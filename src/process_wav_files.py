@@ -153,7 +153,7 @@ if __name__ == "__main__":
         exit(-1)
 
 
-    splits = ["train", "dev", "test"]
+    splits = ["dev", "test"]
     for split in splits:
         
         # append paths with current split 
