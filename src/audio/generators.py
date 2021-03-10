@@ -110,7 +110,7 @@ class LIDGenerator(object):
         self.source = source
         self.shuffle = shuffle
         self.target_length_s = target_length_s
-        self.languages = languages
+        self.languages = sorted(languages)
         self.dtype = dtype
         if len(languages) == 0:
             print("Please provide at least one language")
@@ -128,7 +128,8 @@ class LIDGenerator(object):
         while True:
             rand_int = random.randint(0, len(self.languages))
             try:
-                audio, fs, name = next(self.generators[rand_int])
+                audio, fs, name = next(self.pipelines[rand_int])
+                onehot = [i == rand_int for i in range(0, len(self.languages))]
                 yield [audio, self.languages[rand_int]]
             except Exception as e:
                 print("LIDGenerator Exception: ", e)
@@ -137,7 +138,7 @@ class LIDGenerator(object):
 
 if __name__ == "__main__":
 
-    source = ""
+    source = "../../../data/augmented/test/"
     b = LIDGenerator(source, 10, True, ["spanish", "english"])
     gen = b.get_generator()
     for audio, label in gen:
