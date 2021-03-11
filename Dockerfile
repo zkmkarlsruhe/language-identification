@@ -2,10 +2,11 @@
 FROM tensorflow/tensorflow:latest-devel-gpu
 
 ### ==== update ====
-RUN apt-get update
+# RUN apt-get update
+# RUN apt-get upgrade -y
 
 ### ==== required ====
-ARG DEBIAN_FRONTEND=noninteractive
+#ARG DEBIAN_FRONTEND=noninteractive
 
 ### ==== SSH ==== 
 #RUN apt-get install -y openssh-server
@@ -19,25 +20,26 @@ ARG DEBIAN_FRONTEND=noninteractive
 ### ==== END SSH ====
 
 ### ==== lid specific installs ====
-RUN apt-get install -y \
-	ffmpeg libasound-dev python3 python3-pip 
+#RUN apt-get install -y \
+#	ffmpeg sox libasound-dev python3 python3-pip 
+#RUN python3 -m pip install --upgrade pip
 
 ### ==== Pip ====
-COPY requirements.txt /requirements.txt
-RUN pip3 install -r requirements.txt
+#COPY requirements.txt /requirements.txt
+# enum34 did not let us install latest kapre
+#RUN pip uninstall -y enum34
+#RUN pip install -r requirements.txt
 
 ### ==== Cuda ====
-ENV PATH=/usr/local/cuda-11.2/bin:$PATH 
-ENV LD_LIBRARY_PATH=/usr/local/cuda-11.2/lib64:$LD_LIBRARY_PATH
-RUN export PATH=/usr/local/cuda-11.2/bin:$PATH 
-RUN export LD_LIBRARY_PATH=/usr/local/cuda-11.2/lib64:$LD_LIBRARY_PATH
-RUN export LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:$LD_LIBRARY_PATH
-#RUN echo $PATH
-#RUN echo $LD_LIBRARY_PATH
+#ENV PATH=/usr/local/cuda-11.2/bin:$PATH 
+#ENV LD_LIBRARY_PATH=/usr/local/cuda-11.2/lib64:$LD_LIBRARY_PATH
+#RUN export PATH=/usr/local/cuda-11.2/bin:$PATH 
+#RUN export LD_LIBRARY_PATH=/usr/local/cuda-11.2/lib64:$LD_LIBRARY_PATH
+#RUN export LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:$LD_LIBRARY_PATH
 
 ### ==== cleanup ====
-RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# RUN apt-get clean && \
+#    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-WORKDIR /work/src
+# WORKDIR /work/src
 

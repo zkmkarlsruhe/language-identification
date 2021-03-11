@@ -3,7 +3,7 @@ import random
 import numpy as np
 import fnmatch
 import scipy.io.wavfile as wav
-
+import tensorflow as tf
 
 def pad_with_silence(data, max_len):
     to_add = max(max_len - len(data), 0)
@@ -99,18 +99,20 @@ class LIDGenerator(object):
     def __init__(self, source, target_length_s, shuffle=True, languages=[], dtype="float32"):
         """
         A class for generating audio samples of equal length either from directory or file
+        Labels for each language are generated in alphanumerical order (chinese, english, kabyle, ...).
 
         :param source: directory containing directories for each language
         :param target_length_s: the length of the desired audio chunks in seconds
         :param languages: a list of sub directories containing audio
         :param shuffle: whether to shuffle the list of the directory content before processing
-        :param dtpye: type of output
-        :param minimum_length: minimum length of the audio chunk in percentage
+        :param dtype: type of output
         """
         self.source = source
         self.shuffle = shuffle
         self.target_length_s = target_length_s
         self.languages = sorted(languages)
+        self.num_classes = len(languages)
+        self.active_generators = [i for i in range(0, self.num_classes)]
         self.dtype = dtype
         if len(languages) == 0:
             print("Please provide at least one language")
@@ -122,18 +124,22 @@ class LIDGenerator(object):
 
     def get_generator(self):
         """
-        returns a generator that iterates over the source directories given in self.languages
-        the generator yields audio and label
+        returns a generator that iterates exhausts all internal language specific generators
+        the generator yields audio and label data
         """
         while True:
-            rand_int = random.randint(0, len(self.languages) -1)
-            try:
-                audio, fs, name = next(self.pipelines[rand_int])
-                onehot = [i == rand_int for i in range(0, len(self.languages))]
-                yield [audio, self.languages[rand_int], onehot]
-            except Exception as e:
-                print("LIDGenerator Exception: ", e)
+            if len(self.active_generators) == 0:
                 break
+            # rand_int = random.randint(0, self.num_classes)
+            rand_gen_index = random.choice(self.active_generators)
+            try:
+                audio, fs, name = next(self.pipelines[rand_gen_index])
+                label = tf.keras.utils.to_categorical(rand_gen_index, self.num_classes)
+                # onehot = [i == rand_int for i in range(0, len(self.languages))]
+                # yield [audio, self.languages[rand_int], onehot]
+                yield (audio, label)
+            except StopIteration as e:
+                self.active_generators.remove(rand_gen_index)
 
 
 if __name__ == "__main__":
