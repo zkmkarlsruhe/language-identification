@@ -1,3 +1,12 @@
+"""
+:author:
+Paul Bethge (bethge@zkm.de)
+2021
+
+:License:
+This package is published under GNU GPL Version 3.
+"""
+
 import os
 import argparse
 import threading
@@ -115,10 +124,9 @@ if __name__ == "__main__":
                         help="length of an audio frame to compute features from in milliseconds")
     parser.add_argument('--feature_nu', type=int, default=40,
                         help="amount of features to compute per audio frame")
-
     args = parser.parse_args()
 
-    # overwrite arguments when configf is given
+    # overwrite arguments when config is given
     if args.config_path:
         config = load(open(args.config_path, "rb"))
         if config is None:
@@ -151,7 +159,6 @@ if __name__ == "__main__":
     if args.img_dir == None:
         print("Please provide an output dir")
         exit(-1)
-
 
     splits = ["dev", "test"]
     for split in splits:

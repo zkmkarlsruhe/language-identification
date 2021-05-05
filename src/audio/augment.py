@@ -1,3 +1,12 @@
+"""
+:author:
+Paul Bethge (bethge@zkm.de)
+2021
+
+:License:
+This package is published under GNU GPL Version 3.
+"""
+
 import nlpaug.flow as flow
 import nlpaug.augmenter.audio as naa
 

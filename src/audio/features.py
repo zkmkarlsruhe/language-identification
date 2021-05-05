@@ -1,3 +1,11 @@
+"""
+:author:
+Paul Bethge (bethge@zkm.de)
+2021
+
+:License:
+This package is published under GNU GPL Version 3.
+"""
 
 import os
 import random
@@ -7,6 +15,7 @@ import python_speech_features as feat
 import scipy.io.wavfile as wav
 from imageio import imwrite, imread
 from subprocess import Popen, PIPE, STDOUT
+
 
 def normalize(signal):
     """

@@ -18,5 +18,3 @@ if __name__ == "__main__":
     parser.add_argument('--model_path', default=None)
     parser.add_argument('--config', default="config.yaml")
     cli_args = parser.parse_args()
-
-    mozilla data 

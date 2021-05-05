@@ -1,6 +1,7 @@
 import os
 import shutil
 import argparse
+import time
 from datetime import datetime
 from yaml import load
 
@@ -11,105 +12,152 @@ from tensorflow.keras.optimizers import Adam, RMSprop, SGD
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import Precision, Recall, CategoricalAccuracy
 from tensorflow.keras.models import load_model
+from tensorflow.keras.utils import Progbar
 
 import models
 from utils.training_utils import *
 from audio.generators import LIDGenerator
 
+
+# physical_devices = tf.config.experimental.list_physical_devices('GPU')
+# config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
+def batch_gen(generator, batch_size):
+	x_batch = []
+	y_batch = []
+	i=0
+	while True:
+		try:
+			x,y = next(generator)
+			x_batch.append(x)
+			y_batch.append(y)
+			i += 1
+			if i == batch_size:
+				x_arr = np.asarray(x_batch)
+				y_arr = np.asarray(y_batch)
+				yield x_arr, y_arr
+				i = 0
+				x_batch = []
+				y_batch = []
+		except StopIteration as e:
+				if len(x_batch) > 0:
+					yield x_batch, y_batch
+				break
+					
 def train(config_path, log_dir, model_path):
 
-    # Config
-    config = load(open(config_path, "rb"))
-    if config is None:
-        print("Please provide a config.")
+	# Config
+	config = load(open(config_path, "rb"))
+	if config is None:
+		print("Please provide a config.")
 
-    train_dir = config["train_dir"]
-    val_dir = config["val_dir"]
-    batch_size = config["batch_size"]
-    languages = config["languages"]
+	train_dir = config["train_dir"]
+	val_dir = config["val_dir"]
+	batch_size = config["batch_size"]
+	languages = config["languages"]
+	num_epochs = config["num_epochs"]
 
-    # ts_shape = (batch_size, signal_length, num_channels)
-    # print("Input shape:", ts_shape[1:])
-    # print("Output classes:", train_ds.class_names)
-    
-    # create Generators
-    train_gen_obj = LIDGenerator(source=train_dir, target_length_s=10, shuffle=True,
-                            languages=languages)
-    val_gen_obj = LIDGenerator(source=val_dir, target_length_s=10, shuffle=True,
-                            languages=languages)
-    # create Dataset
-    train_ds = tf.data.Dataset.from_generator(train_gen_obj.get_generator, (tf.float32, tf.int16))
-    val_ds = tf.data.Dataset.from_generator(val_gen_obj.get_generator, (tf.float32, tf.int16))
-        
-    # prepare dataset pipelines
-    train_ds = train_ds.batch(batch_size)
-    val_ds = val_ds.batch(batch_size)
-    
-    # train_ds = train_ds.repeat()
-    # val_ds = val_ds.repeat()
+	model_class = getattr(models, config["model"])
+	model = model_class.create_model(config)
+	optimizer = Adam(lr=config["learning_rate"])
+	model.compile()
+	print(model.summary())
 
-    train_ds = train_ds.prefetch(tf.data.experimental.AUTOTUNE)
-    val_ds = val_ds.prefetch(tf.data.experimental.AUTOTUNE)
+	
+	def run_epoch(batch_generator, num_batches, training):
+		''' train or validate over an epoch
+		'''
+		loss_fn = CategoricalCrossentropy()
+		accuracy_fn = CategoricalAccuracy()
+		accuracy_epoch = []
+		loss_epoch = []
 
-    # Training Callbacks
-    checkpoint_filename = os.path.join(log_dir, "trained_models", "weights.{epoch:02d}")
-    model_checkpoint_callback = ModelCheckpoint(checkpoint_filename, save_best_only=True, verbose=1,
-                                                 monitor="val_categorical_accuracy",
-                                                 save_weights_only=False)
-    tensorboard_callback = TensorBoard(log_dir=log_dir, write_images=True)
-    csv_logger_callback = CustomCSVCallback(os.path.join(log_dir, "log.csv"))
-    early_stopping_callback = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1, mode="min")
-    reduce_on_plateau = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=1, verbose=1, min_lr=0.000001,
-                                           min_delta=0.001)
+		if training:
+			print('______ TRAINING ______')
+		else:
+			print('_____ VALIDATION ______')
 
-    # Model Generation
-    if model_path:
-        model = load_model(model_path)
-    else:
-        model_class = getattr(models, config["model"])
-        model = model_class.create_model(config)
-        optimizer = Adam(lr=config["learning_rate"])
-        # optimizer = RMSprop(lr=config["learning_rate"], rho=0.9, epsilon=1e-08, decay=0.95)
-        # optimizer = SGD(lr=config["learning_rate"], decay=1e-6, momentum=0.9, clipnorm=1, clipvalue=10)
-        model.compile(optimizer=optimizer,
-                      loss=CategoricalCrossentropy(),
-                      metrics=[Recall(), Precision(), CategoricalAccuracy()]
-                      )
-    print(model.summary())
+		metrics_names = ['loss', 'acc']
+		pb = Progbar(num_batches, stateful_metrics=metrics_names)
 
-    # Training
-    history = model.fit(x=train_ds,
-                        epochs=config["num_epochs"],
-                        callbacks=[model_checkpoint_callback,
-                                   tensorboard_callback,
-                                   csv_logger_callback,
-                                   # early_stopping_callback,
-                                   reduce_on_plateau
-                                   ],
-                        validation_data=val_ds)
-    # visualize_results(history, config)
+		# Iterate over the batches of a dataset
+		for x_batch_train, y_batch_train in batch_generator:
+			x_batch_train = np.expand_dims(x_batch_train, axis=-1)
 
-    # Do evaluation on model with best validation accuracy
-    best_epoch = np.argmax(history.history["val_categorical_accuracy"])
-    print("Log files: ", log_dir)
-    print("Best epoch: ", best_epoch)
-    return checkpoint_filename.replace("{epoch:02d}", "{:02d}".format(best_epoch))
+			with tf.GradientTape() as tape:
+
+				# run the model
+				logits = model(x_batch_train, training=training)
+
+				# calculate loss & metrics
+				loss_value = loss_fn(y_batch_train, logits)
+				accuracy_fn.update_state(y_batch_train, logits)
+
+			# optimize
+			if training:
+				grads = tape.gradient(loss_value, model.trainable_weights)
+				optimizer.apply_gradients(zip(grads, model.trainable_weights))
+				
+			# report loss & metrics per batch
+			accuracy = accuracy_fn.result()
+			values=[('loss', loss_value), ('acc', accuracy)]
+			pb.add(1, values=values)
+			loss_epoch.append(loss_value)
+			accuracy_epoch.append(accuracy)
+
+		# report loss & metrics per epoch
+		epoch_loss = np.mean(loss_epoch)
+		epoch_acc = np.mean(accuracy_epoch)
+		print ('Epoch ended with: \tmean(loss): %.4f \tmean(acc): %.4f\n' % (epoch_loss, epoch_acc))
+
+		return epoch_acc, epoch_loss
+
+
+	# Epochs Loop
+	for epoch in range(num_epochs):
+
+		# create Generators
+		train_gen_obj = LIDGenerator(source=train_dir, target_length_s=10, shuffle=True,
+								languages=languages)
+		train_generator = batch_gen(train_gen_obj.get_generator(), batch_size)
+
+		val_gen_obj = LIDGenerator(source=val_dir, target_length_s=10, shuffle=True,
+								languages=languages)
+		val_generator = batch_gen(val_gen_obj.get_generator(), batch_size)
+
+		
+		# Todo add augmentation
+
+		train_num_batches = train_gen_obj.get_num_files() // batch_size
+		val_num_batches = val_gen_obj.get_num_files() // batch_size
+
+		run_epoch(train_generator, train_num_batches, training=True)
+		run_epoch(val_generator, val_num_batches, training=False)
+
+		model.save("model" + "_" + str(epoch + 1))
+		
+
+	# Do evaluation on model with best validation accuracy
+	best_epoch = np.argmax(history.history["val_categorical_accuracy"])
+	print("Log files: ", log_dir)
+	print("Best epoch: ", best_epoch)
+	return
 
 
 if __name__ == "__main__": 
-    tf.config.list_physical_devices('GPU')
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--model_path', default=None)
-    parser.add_argument('--config', default="config.yaml")
-    cli_args = parser.parse_args()
+	tf.config.list_physical_devices('GPU')
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--model_path', default=None)
+	parser.add_argument('--config', default="config.yaml")
+	cli_args = parser.parse_args()
 
-    log_dir = os.path.join("logs", datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
-    print("Logging to {}".format(log_dir))
+	log_dir = os.path.join("logs", datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
+	print("Logging to {}".format(log_dir))
 
-    # copy models & config for later
-    shutil.copytree("models", os.path.join(log_dir, "models"))
-    shutil.copy(cli_args.config, log_dir)
+	# copy models & config for later
+	shutil.copytree("models", os.path.join(log_dir, "models"))
+	shutil.copy(cli_args.config, log_dir)
 
-    model_file_name = train(cli_args.config, log_dir, cli_args.model_path)
-    print("Best model at: ", model_file_name)
+	model_file_name = train(cli_args.config, log_dir, cli_args.model_path)
+	print("Best model at: ", model_file_name)
 

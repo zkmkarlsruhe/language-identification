@@ -1,3 +1,12 @@
+"""
+:author:
+Paul Bethge (bethge@zkm.de)
+2020
+
+:License:
+This package is published under GNU GPL Version 3.
+"""
+
 import argparse
 import os
 

@@ -1,3 +1,12 @@
+"""
+:author:
+Paul Bethge (bethge@zkm.de)
+2021
+
+:License:
+This package is published under GNU GPL Version 3.
+"""
+
 import csv
 import matplotlib.pyplot as plt
 from tensorflow.keras.callbacks import Callback

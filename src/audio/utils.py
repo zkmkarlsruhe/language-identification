@@ -1,3 +1,12 @@
+"""
+:author:
+Paul Bethge (bethge@zkm.de)
+2021
+
+:License:
+This package is published under GNU GPL Version 3.
+"""
+
 from array import array
 import numpy as np
 
@@ -11,6 +20,7 @@ def pad(data, max_len, type):
             return pad_with_data(data, max_len)
         else:
             return pad_with_noise(data, max_len)
+
 
 def pad_with_silence(data, max_len):
     to_add = max(max_len - len(data), 0)

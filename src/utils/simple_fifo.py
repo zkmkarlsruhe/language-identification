@@ -1,3 +1,11 @@
+"""
+:author:
+Paul Bethge (bethge@zkm.de)
+2021
+
+:License:
+This package is published under GNU GPL Version 3.
+"""
 
 class SimpleFIFO:
 
