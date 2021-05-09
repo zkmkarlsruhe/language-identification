@@ -1,3 +1,7 @@
+
+docker run -it --rm --gpus device=0 -v $(pwd)/src:/work/src -v $(pwd)/../data:/data  lid:kapre3.5 python train_gen.py --config config_gen.yaml
+
+
 # Language Identification System
 A playground to test and experiment with spoken languages identification. 
 

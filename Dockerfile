@@ -2,11 +2,9 @@
 FROM tensorflow/tensorflow:latest-devel-gpu
 
 ### ==== update ====
-# RUN apt-get update
-# RUN apt-get upgrade -y
-
-### ==== required ====
-#ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get install --fix-missing
+RUN apt-get update 
+#RUN apt-get upgrade -y
 
 ### ==== SSH ==== 
 #RUN apt-get install -y openssh-server
@@ -20,15 +18,15 @@ FROM tensorflow/tensorflow:latest-devel-gpu
 ### ==== END SSH ====
 
 ### ==== lid specific installs ====
-#RUN apt-get install -y \
-#	ffmpeg sox libasound-dev python3 python3-pip 
-#RUN python3 -m pip install --upgrade pip
+RUN apt-get install -y \
+    ffmpeg sox libasound-dev python3 python3-pip 
+RUN python3 -m pip install --upgrade pip
 
 ### ==== Pip ====
-#COPY requirements.txt /requirements.txt
+COPY requirements.txt /requirements.txt
 # enum34 did not let us install latest kapre
-#RUN pip uninstall -y enum34
-#RUN pip install -r requirements.txt
+RUN pip uninstall -y enum34
+RUN pip install -r requirements.txt
 
 ### ==== Cuda ====
 #ENV PATH=/usr/local/cuda-11.2/bin:$PATH 
@@ -38,8 +36,8 @@ FROM tensorflow/tensorflow:latest-devel-gpu
 #RUN export LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:$LD_LIBRARY_PATH
 
 ### ==== cleanup ====
-# RUN apt-get clean && \
-#    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# WORKDIR /work/src
+WORKDIR /work/src
 

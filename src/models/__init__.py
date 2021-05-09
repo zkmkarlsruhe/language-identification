@@ -6,4 +6,5 @@ from .incV3BLSTM import *
 from .eff import *
 from .effBLSTM import *
 from .attRnn import *
-from .attRnnMel import *
+from .attRnnSTFT import *
+#from .attRnnMel import *
