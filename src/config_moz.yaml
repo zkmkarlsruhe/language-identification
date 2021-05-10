@@ -1,25 +1,30 @@
 
 # Mozilla to Wav 1 
 cv_dir: "../../data/common_voice/corpus6.1/"
-cv_filtered_dir: "../../data/common_voice_filtered/test"
-max_chops: [1, 1, 1]
+cv_filtered_dir: "../../data/common_voice_filtered/fiveSec"
+#max_chops: [30000, 5000, 5000]
+max_chops: [10, 1, 1]
 allowed_downvotes: 0
-audio_length_s: 10
+audio_length_s: 5
 sample_rate: 16000
 sample_width: 2
-parallelize_moz: True
+parallelize_moz: False
 remove_raw: True
 
 language_table:
-  - lang: "english"
-    dir: "en"
-  - lang: "french"
-    dir: "fr"
-  - lang: "german"
-    dir: "de"
+#  - lang: "english"
+#    dir: "en"
+#  - lang: "farsi"
+#    dir: "fa"
+#  - lang: "french"
+#    dir: "fr"
+#  - lang: "german"
+#    dir: "de"
+#  - lang: "polish"
+#    dir: "pl"
   - lang: "mandarin"
     dir: "zh-CN"
-  - lang: "russian"
-    dir: "ru"
-  - lang: "spanish"
-    dir: "es"
+#  - lang: "russian"
+#    dir: "ru"
+#  - lang: "spanish"
+#    dir: "es"

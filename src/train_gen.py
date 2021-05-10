@@ -17,18 +17,24 @@ from tensorflow.keras.utils import Progbar
 import models
 from utils.training_utils import *
 from audio.generators import LIDGenerator
-
+from audio.augment import AudioAugmenter
+from audio.utils import pad_with_silence
+from audio.features import normalize
 
 # physical_devices = tf.config.experimental.list_physical_devices('GPU')
 # config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-def batch_gen(generator, batch_size):
+def batch_gen(generator, batch_size, augmenter=None, fs=None, desired_audio_length_s=10):
 	x_batch = []
 	y_batch = []
 	i=0
 	while True:
 		try:
 			x,y = next(generator)
+			if augmenter:
+				x = augmenter.augment_audio_array(x, fs)
+				x = pad_with_silence(x, desired_audio_length_s *fs)
+			x = normalize(x)
 			x_batch.append(x)
 			y_batch.append(y)
 			i += 1
@@ -56,14 +62,16 @@ def train(config_path, log_dir, model_path):
 	batch_size = config["batch_size"]
 	languages = config["languages"]
 	num_epochs = config["num_epochs"]
+	fs = config["sample_rate"]
+	audio_length_s = config["audio_length_s"]
 
 	model_class = getattr(models, config["model"])
 	model = model_class.create_model(config)
 	optimizer = Adam(lr=config["learning_rate"])
 	model.compile()
 	print(model.summary())
+	augmenter = AudioAugmenter(fs)
 
-	
 	def run_epoch(batch_generator, num_batches, training):
 		''' train or validate over an epoch
 		'''
@@ -85,7 +93,6 @@ def train(config_path, log_dir, model_path):
 			x_batch_train = np.expand_dims(x_batch_train, axis=-1)
 
 			with tf.GradientTape() as tape:
-
 				# run the model
 				logits = model(x_batch_train, training=training)
 
@@ -115,26 +122,29 @@ def train(config_path, log_dir, model_path):
 
 	# Epochs Loop
 	for epoch in range(num_epochs):
+                
 
 		# create Generators
 		train_gen_obj = LIDGenerator(source=train_dir, target_length_s=10, shuffle=True,
 								languages=languages)
+		#train_generator = batch_gen(train_gen_obj.get_generator(), batch_size, augmenter, fs, audio_length_s)
 		train_generator = batch_gen(train_gen_obj.get_generator(), batch_size)
 
 		val_gen_obj = LIDGenerator(source=val_dir, target_length_s=10, shuffle=True,
 								languages=languages)
 		val_generator = batch_gen(val_gen_obj.get_generator(), batch_size)
-
-		
-		# Todo add augmentation
+		print('===== EPOCH ', str(epoch), ' ======')
 
 		train_num_batches = train_gen_obj.get_num_files() // batch_size
 		val_num_batches = val_gen_obj.get_num_files() // batch_size
 
-		run_epoch(train_generator, train_num_batches, training=True)
-		run_epoch(val_generator, val_num_batches, training=False)
+		train_acc, train_loss = run_epoch(train_generator, train_num_batches, training=True)
+		val_acc, val_loss = run_epoch(val_generator, val_num_batches, training=False)
+		logs = {'train_acc': train_acc, 'train_loss': train_loss, 
+		 'val_acc': val_acc, 'val_loss': val_loss}
 
-		model.save("model" + "_" + str(epoch + 1))
+		model.save(os.path.join(log_dir, 'model' + "_" + str(epoch + 1)))
+		write_csv(os.path.join(log_dir, 'log.csv'), optimizer, epoch, logs)
 		
 
 	# Do evaluation on model with best validation accuracy

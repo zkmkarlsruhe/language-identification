@@ -20,9 +20,9 @@ from audio.chop_up import chop_up_audio
 
 def sentence_is_too_short(sentence_len, language):
     if language == "mandarin":
-        return sentence_len < 5
+        return sentence_len < 3
     else:
-        return sentence_len < 10
+        return sentence_len < 6
 
 
 def traverse_csv(language, input_dir, output_dir, max_chops, 
@@ -158,7 +158,7 @@ if __name__ == '__main__':
                         help="whether to remove intermediate file")
     args = parser.parse_args()
     
-    # overwrite arguments when configf is given
+    # overwrite arguments when config is given
     if args.config_path:
         config = load(open(args.config_path, "rb"))
         if config is None:

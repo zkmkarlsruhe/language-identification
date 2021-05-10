@@ -41,6 +41,7 @@ def tokenize_audio(data, tokenizer, block_size, leading_pause):
         # use start and end point from token on the actual data and add the initial section
         start = t[1]
         end = t[2] + leading_pause + 1
+        print(str(end-start))
         data_slice = data[start:end]
         data_sliced_and_joined = b''.join(data_slice)
         # convert to numpy data
@@ -51,7 +52,7 @@ def tokenize_audio(data, tokenizer, block_size, leading_pause):
 
 
 def chop_up_audio( file_name, desired_length_s = 10,
-                    min_length = 300, max_silence = 200,
+                    min_length = 250, max_silence = 150,
                     sample_width = 2, threshold = 60, padding = "Silence",
                     audio_window_ms = 10, leading_pause = 5):
     
@@ -118,9 +119,9 @@ if __name__ == '__main__':
     parser.add_argument('--audio_window_ms', type=int, default=10,
                         help='length of an audio frame in milliseconds')
     # Tokenization
-    parser.add_argument('--min_length', type=int, default=300,
+    parser.add_argument('--min_length', type=int, default=250,
                         help='minimum number of valid audio frames')
-    parser.add_argument('--max_silence', type=int, default=200,
+    parser.add_argument('--max_silence', type=int, default=150,
                         help='maximum number of silent audio frames inside one token')
     parser.add_argument('--energy_threshold', type=float, default=60, 
                         help='amount of energy that determines valid audio frames')

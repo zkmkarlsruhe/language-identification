@@ -36,6 +36,25 @@ class CustomCSVCallback(Callback):
         self._counter += 1
 
 
+def write_csv(logging_dir, optimizer, epoch, logs={}):
+        with open(logging_dir, mode='a') as log_file:
+            log_file_writer = csv.writer(log_file, delimiter=',')
+            if epoch == 0:
+                row = list(logs.keys())
+                row.insert(0, "epoch")
+                row.append("learning_rate")
+                log_file_writer.writerow(row)
+            row_vals = [round(x, 6) for x in list(logs.values())]
+            row_vals.insert(0, epoch+1)
+            row_vals.append(round(float(
+                get_value(optimizer.learning_rate)), 6))
+            log_file_writer.writerow(row_vals)
+
+
+def visualize_results(history, config):
+    epochs = config["num_epochs"]
+
+
 def visualize_results(history, config):
     epochs = config["num_epochs"]
     acc = history.history['categorical_accuracy']
