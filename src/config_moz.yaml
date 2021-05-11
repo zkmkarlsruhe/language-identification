@@ -12,6 +12,7 @@ energy_treshold: 60
 sample_rate: 16000
 sample_width: 2
 parallelize_moz: False
+use_validated_set: False
 remove_raw: True
 
 language_table:

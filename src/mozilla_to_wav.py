@@ -39,6 +39,8 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
 
     splits = ["train", "dev", "test"]
 
+	fast_forward = 0	
+
     for split_index, split in enumerate(splits):
 
         output_dir_wav = os.path.join(output_dir, "wav", split, lang)
@@ -72,6 +74,11 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
                 # skip the first line
                 line = f.readline()
 
+				# when using the validated.tsv we have to start where we left off
+				if use_validated_set:
+					for skip in range(fast_forward):
+						f.readline()
+
                 while True:
 
                     # get a line
@@ -88,20 +95,9 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
                         if too_short or messy:
                             continue
 
-						# when using the validated.tsv we have to make sure the same
-						# speakers wont appear in the more than one set
-						if use_validated_set:
-							speaker = line[0]
-							if produced_files >= to_produce:
-								if speaker != last_speaker:
-									break
-								else:
-									continue
-
                         # get mp3 filename
                         mp3_filename = line[1]
                         mp3_path = os.path.join(input_sub_dir_clips, mp3_filename)
-
                         wav_path_raw = os.path.join(output_dir_raw,
                                                     mp3_filename[:-4] + ".wav")
 
@@ -123,20 +119,24 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
                                             threshold=energy_threshold)
                         for chip in chips:
                             wav_path = os.path.join(output_dir_wav, chip[0] + ".wav")
-                            wav.write(wav_path, chip[1], chip[2])
+                            #wav.write(wav_path, chip[1], chip[2])
                             produced_files += 1
                             # remove the intermediate file
                             if remove_raw and os.path.exists(wav_path_raw):
                                 os.remove(wav_path_raw)
                             # check if we are done yet
                             if to_produce != -1 and produced_files >= to_produce:
-								# when using validated.tsv, remember the last speaker
-								if use_validated_set:
-									last_speaker = speaker
                                 done = True
                                 break
-
+						
                         if done:
+							# when using the validated.tsv we have to make sure the same
+							# speakers wont appear in more than one set. Fast-forward...
+							if use_validated_set:
+								last_speaker = speaker = line[0]
+								while speaker == last_speaker:
+									speaker = f.readline().split('\t')[0]
+									fast_forward += 1
                             break
 
                     else:
@@ -161,7 +161,7 @@ if __name__ == '__main__':
                         help="directory to receive converted clips of all languages")
     # Data 
     parser.add_argument("--max_chops", type=int, nargs=3, default=[-1, -1, -1],
-                        help="amount of wav chops to be produced per split")
+                        help="amount of maximum wav chops to be produced per split. -1 means all.")
     parser.add_argument("--use_validated_set", type=bool, nargs=3, default=False,
                         help="whether to use the train, test and dev sets or all validated data")
     parser.add_argument("--allowed_downvotes", type=int, default=0,
