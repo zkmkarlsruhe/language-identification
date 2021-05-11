@@ -15,22 +15,20 @@ import auditok
 from utils import pad_with_data, pad_with_noise, pad_with_silence, to_array
 
 
-def chop_up_audio (file_name, desired_length_s = 10,
-					min_length = 250, max_silence = 150,
+def chop_up_audio (file_name, desired_length_s = 5,
+					min_length_s = 2.5, max_silence = 1.5,
 					threshold = 60, padding = "Silence",
 					audio_window_ms = 10):
 	
+	assert(min_length <= desired_length_s)
+
 	sample_rate = auditok.WaveAudioSource(file_name).sampling_rate
-	min_length  *= audio_window_ms / 1000
-	max_length  = desired_length_s / audio_window_ms * 1000
-	max_silence *= audio_window_ms / 1000
+
 	audio_window = audio_window_ms / 1000
 	nn_input_len = desired_length_s * sample_rate
 
-	assert(min_length <= max_length)
-
 	# chop up the audio using auditok
-	regions = auditok.split(file_name, min_dur=min_length, max_dur=max_length, 
+	regions = auditok.split(file_name, min_dur=min_length, max_dur=desired_length_s, 
 							max_silence=max_silence, strict_min_dur=True, 
 							analysis_window=audio_window, energy_threshold=threshold)
 
@@ -39,6 +37,7 @@ def chop_up_audio (file_name, desired_length_s = 10,
 	for i, r in enumerate(regions):
 
 		numpy_data = to_array(r._data, 2, 1)
+		r.save("region_{meta.start:.3f}-{meta.end:.3f}.wav")
 
 		if padding == "Silence":
 			extended_token = pad_with_silence(numpy_data, nn_input_len)
@@ -63,18 +62,18 @@ if __name__ == '__main__':
 	parser.add_argument('--audio_window_ms', type=int, default=10,
 						help='length of an audio frame in milliseconds')
 	# Tokenization
-	parser.add_argument('--min_length', type=int, default=250,
-						help='minimum number of valid audio frames')
-	parser.add_argument('--max_silence', type=int, default=150,
-						help='maximum number of silent audio frames inside one token')
+	parser.add_argument('--min_length', type=float, default=2.5,
+						help='length of valid audio frames in seconds')
+	parser.add_argument('--max_silence', type=float, default=1.5,
+						help='maximum length of silent audio frames inside one token in seconds')
 	parser.add_argument('--energy_threshold', type=float, default=60, 
 						help='amount of energy that determines valid audio frames')
 	# Neural Network Preprocessing
 	padding_choices = ("Silence", "Data", "Noise")
 	parser.add_argument('--padding', type=str, default="Data", choices=padding_choices,
 						help='whether to pad extracted tokens with silence, data or noise')
-	parser.add_argument('--audio_length_s', type=int, default=10,
-						help='desired output length')
+	parser.add_argument('--audio_length_s', type=float, default=5,
+						help='desired output length in seconds')
 	# Other
 	parser.add_argument('--output_dir', type=str, default="./",
 						help='directory to store wav files to')
