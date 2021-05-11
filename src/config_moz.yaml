@@ -6,25 +6,28 @@ cv_filtered_dir: "../../data/common_voice_filtered/fiveSec"
 max_chops: [10, 1, 1]
 allowed_downvotes: 0
 audio_length_s: 5
+min_length_s: 2.5
+max_silence_s: 1
+energy_treshold: 60
 sample_rate: 16000
 sample_width: 2
 parallelize_moz: False
 remove_raw: True
 
 language_table:
-#  - lang: "english"
-#    dir: "en"
-#  - lang: "farsi"
-#    dir: "fa"
-#  - lang: "french"
-#    dir: "fr"
-#  - lang: "german"
-#    dir: "de"
-#  - lang: "polish"
-#    dir: "pl"
+  - lang: "english"
+    dir: "en"
+  - lang: "farsi"
+    dir: "fa"
+  - lang: "french"
+    dir: "fr"
+  - lang: "german"
+    dir: "de"
+  - lang: "polish"
+    dir: "pl"
   - lang: "mandarin"
     dir: "zh-CN"
-#  - lang: "russian"
-#    dir: "ru"
-#  - lang: "spanish"
-#    dir: "es"
+  - lang: "russian"
+    dir: "ru"
+  - lang: "spanish"
+    dir: "es"

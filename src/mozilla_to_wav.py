@@ -27,7 +27,8 @@ def sentence_is_too_short(sentence_len, language):
 
 def traverse_csv(language, input_dir, output_dir, max_chops, 
                 desired_audio_length_s, sample_rate, sample_width,
-                allowed_downvotes, remove_raw):
+                allowed_downvotes, remove_raw, min_length_s, max_silence_s,
+                energy_threshold):
 
     lang = language["lang"]
     lang_abb = language["dir"]
@@ -101,7 +102,8 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
                         padding_choice = ["Data", "Silence"][rand_int]
                         chips = chop_up_audio (wav_path_raw, padding=padding_choice,
                                             desired_length_s=desired_audio_length_s,
-                                            sample_width=sample_width)
+                                            min_length_s=min_length_s, max_silence_s=max_silence_s,
+                                            threshold=energy_threshold)
                         for chip in chips:
                             wav_path = os.path.join(output_dir_wav, chip[0] + ".wav")
                             wav.write(wav_path, chip[1], chip[2])
@@ -145,6 +147,12 @@ if __name__ == '__main__':
     # Audio file properties
     parser.add_argument("--audio_length_s", type=int, default=10,
                         help="length of wav files being produced")
+    parser.add_argument("--min_length_s", type=float, default=2.5,
+                        help="min length of an audio event")
+    parser.add_argument("--max_silence_s", type=float, default=1,
+                        help="max length of silence in an audio event")
+    parser.add_argument("--energy_threshold", type=float, default=60,
+                        help="minimum energy for a frame to be valid")
     parser.add_argument("--sample_rate", type=int, default=16000,
                         help="sample rate of files being produced")
     parser.add_argument('--sample_width', type=int, default=2, choices=(1, 2, 4),
@@ -170,6 +178,9 @@ if __name__ == '__main__':
             args.max_chops         = config["max_chops"]
             args.allowed_downvotes = config["allowed_downvotes"]
             args.audio_length_s    = config["audio_length_s"] 
+            args.max_silence_s     = config["max_silence_s"] 
+            args.min_ength_s       = config["min_length_s"] 
+            args.energy_treshold   = config["energy_treshold"] 
             args.sample_rate       = config["sample_rate"]
             args.sample_width      = config["sample_width"]
             args.parallelize_moz   = config["parallelize_moz"]
@@ -219,7 +230,8 @@ if __name__ == '__main__':
         # prepare arguments
         function_args = (language, args.cv_dir, args.cv_filtered_dir, args.max_chops, 
                         args.audio_length_s, args.sample_rate, args.sample_width, 
-                        args.allowed_downvotes, args.remove_raw)
+                        args.allowed_downvotes, args.remove_raw, args.min_length_s,
+                        args.max_silence_s, args.energy_threshold)
         
         # process current language for all splits
         if args.parallelize_moz:
@@ -234,3 +246,6 @@ if __name__ == '__main__':
             t.start()
         for t in threads:
             t.join()
+    
+    if args.remove_raw:
+        shutil.rmtree(os.path.join(args.cv_filtered_dir, "raw"))

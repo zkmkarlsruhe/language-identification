@@ -12,15 +12,15 @@ import os
 import time
 
 import auditok
-from utils import pad_with_data, pad_with_noise, pad_with_silence, to_array
+from audio.utils import pad_with_data, pad_with_noise, pad_with_silence, to_array
 
 
 def chop_up_audio (file_name, desired_length_s = 5,
-					min_length_s = 2.5, max_silence = 1.5,
+					min_length_s = 2.5, max_silence_s = 1.5,
 					threshold = 60, padding = "Silence",
 					audio_window_ms = 10):
 	
-	assert(min_length <= desired_length_s)
+	assert(min_length_s <= desired_length_s)
 
 	sample_rate = auditok.WaveAudioSource(file_name).sampling_rate
 
@@ -28,8 +28,8 @@ def chop_up_audio (file_name, desired_length_s = 5,
 	nn_input_len = desired_length_s * sample_rate
 
 	# chop up the audio using auditok
-	regions = auditok.split(file_name, min_dur=min_length, max_dur=desired_length_s, 
-							max_silence=max_silence, strict_min_dur=True, 
+	regions = auditok.split(file_name, min_dur=min_length_s, max_dur=desired_length_s, 
+							max_silence=max_silence_s, strict_min_dur=True, 
 							analysis_window=audio_window, energy_threshold=threshold)
 
 	# extend tokens to desired length
@@ -37,7 +37,6 @@ def chop_up_audio (file_name, desired_length_s = 5,
 	for i, r in enumerate(regions):
 
 		numpy_data = to_array(r._data, 2, 1)
-		r.save("region_{meta.start:.3f}-{meta.end:.3f}.wav")
 
 		if padding == "Silence":
 			extended_token = pad_with_silence(numpy_data, nn_input_len)
@@ -62,9 +61,9 @@ if __name__ == '__main__':
 	parser.add_argument('--audio_window_ms', type=int, default=10,
 						help='length of an audio frame in milliseconds')
 	# Tokenization
-	parser.add_argument('--min_length', type=float, default=2.5,
+	parser.add_argument('--min_length_s', type=float, default=2.5,
 						help='length of valid audio frames in seconds')
-	parser.add_argument('--max_silence', type=float, default=1.5,
+	parser.add_argument('--max_silence_s', type=float, default=1.5,
 						help='maximum length of silent audio frames inside one token in seconds')
 	parser.add_argument('--energy_threshold', type=float, default=60, 
 						help='amount of energy that determines valid audio frames')
@@ -88,8 +87,8 @@ if __name__ == '__main__':
 	threshold = args.energy_threshold
 
 	# tokenization parameters
-	min_length = args.min_length
-	max_silence = args.max_silence
+	min_length_s = args.min_length_s
+	max_silence_s = args.max_silence_s
 	# desired length should not be smaller than the max length of a token
 
 	audio_length_s = args.audio_length_s
@@ -98,7 +97,7 @@ if __name__ == '__main__':
 	# others
 	output_dir = args.output_dir
 
-	chunk = chop_up_audio(file_name, audio_length_s, min_length, max_silence,
+	chunk = chop_up_audio(file_name, audio_length_s, min_length_s, max_silence_s,
 							threshold, padding, audio_window_ms)
 	
 	import scipy.io.wavfile as wav
