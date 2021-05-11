@@ -28,7 +28,7 @@ def sentence_is_too_short(sentence_len, language):
 def traverse_csv(language, input_dir, output_dir, max_chops, 
                 desired_audio_length_s, sample_rate, sample_width,
                 allowed_downvotes, remove_raw, min_length_s, max_silence_s,
-                energy_threshold):
+                energy_threshold, use_validated_set):
 
     lang = language["lang"]
     lang_abb = language["dir"]
@@ -50,13 +50,20 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
         if not os.path.exists(output_dir_raw):
             os.makedirs(output_dir_raw)
 
-        input_clips_file = os.path.join(input_sub_dir, split + ".tsv")
-
         # keep track of files handled
         processed_files = 0
         produced_files = 0
         to_produce = int(max_chops[split_index])
         done = False
+
+		if use_validated_set:
+        	input_clips_file = os.path.join(input_sub_dir, "validated.tsv")
+			if to_produce != -1 
+				print("when using validated.tsv, please set number of chops to a positive number")
+				exit()
+		else:
+        	input_clips_file = os.path.join(input_sub_dir, split + ".tsv")
+
 
         # open mozillas' dataset file
         with open(input_clips_file) as f:
@@ -80,6 +87,16 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
                         messy = int(line[4]) > allowed_downvotes
                         if too_short or messy:
                             continue
+
+						# when using the validated.tsv we have to make sure the same
+						# speakers wont appear in the more than one set
+						if use_validated_set:
+							speaker = line[0]
+							if produced_files >= to_produce:
+								if speaker != last_speaker:
+									break
+								else:
+									continue
 
                         # get mp3 filename
                         mp3_filename = line[1]
@@ -113,6 +130,9 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
                                 os.remove(wav_path_raw)
                             # check if we are done yet
                             if to_produce != -1 and produced_files >= to_produce:
+								# when using validated.tsv, remember the last speaker
+								if use_validated_set:
+									last_speaker = speaker
                                 done = True
                                 break
 
@@ -142,6 +162,8 @@ if __name__ == '__main__':
     # Data 
     parser.add_argument("--max_chops", type=int, nargs=3, default=[-1, -1, -1],
                         help="amount of wav chops to be produced per split")
+    parser.add_argument("--use_validated_set", type=bool, nargs=3, default=False,
+                        help="whether to use the train, test and dev sets or all validated data")
     parser.add_argument("--allowed_downvotes", type=int, default=0,
                         help="amount of downvotes allowed")
     # Audio file properties
@@ -185,6 +207,7 @@ if __name__ == '__main__':
             args.sample_width      = config["sample_width"]
             args.parallelize_moz   = config["parallelize_moz"]
             args.remove_raw        = config["remove_raw"]
+			args.use_validated_set = config["use_validated_set"]
             language_table         = config["language_table"]
             
             # copy config to output dir
@@ -231,7 +254,7 @@ if __name__ == '__main__':
         function_args = (language, args.cv_dir, args.cv_filtered_dir, args.max_chops, 
                         args.audio_length_s, args.sample_rate, args.sample_width, 
                         args.allowed_downvotes, args.remove_raw, args.min_length_s,
-                        args.max_silence_s, args.energy_threshold)
+                        args.max_silence_s, args.energy_threshold, args.use_validated_set)
         
         # process current language for all splits
         if args.parallelize_moz:
