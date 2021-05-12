@@ -64,6 +64,7 @@ def train(config_path, log_dir, model_path):
 	num_epochs = config["num_epochs"]
 	fs = config["sample_rate"]
 	audio_length_s = config["audio_length_s"]
+	augment = config["augment"]
 
 	model_class = getattr(models, config["model"])
 	model = model_class.create_model(config)
@@ -127,7 +128,9 @@ def train(config_path, log_dir, model_path):
 		# create Generators
 		train_gen_obj = LIDGenerator(source=train_dir, target_length_s=10, shuffle=True,
 								languages=languages)
-		#train_generator = batch_gen(train_gen_obj.get_generator(), batch_size, augmenter, fs, audio_length_s)
+		#if augment:
+		#    train_generator = batch_gen(train_gen_obj.get_generator(), batch_size, augmenter, fs, audio_length_s)
+		#else:
 		train_generator = batch_gen(train_gen_obj.get_generator(), batch_size)
 
 		val_gen_obj = LIDGenerator(source=val_dir, target_length_s=10, shuffle=True,
@@ -137,6 +140,8 @@ def train(config_path, log_dir, model_path):
 
 		train_num_batches = train_gen_obj.get_num_files() // batch_size
 		val_num_batches = val_gen_obj.get_num_files() // batch_size
+		print(val_gen_obj.get_num_files())
+		print(train_gen_obj.get_num_files())
 
 		train_acc, train_loss = run_epoch(train_generator, train_num_batches, training=True)
 		val_acc, val_loss = run_epoch(val_generator, val_num_batches, training=False)

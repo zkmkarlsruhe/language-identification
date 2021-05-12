@@ -39,7 +39,7 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
 
     splits = ["train", "dev", "test"]
 
-	fast_forward = 0	
+    fast_forward = 0	
 
     for split_index, split in enumerate(splits):
 
@@ -58,13 +58,13 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
         to_produce = int(max_chops[split_index])
         done = False
 
-		if use_validated_set:
-        	input_clips_file = os.path.join(input_sub_dir, "validated.tsv")
-			if to_produce != -1 
-				print("when using validated.tsv, please set number of chops to a positive number")
-				exit()
-		else:
-        	input_clips_file = os.path.join(input_sub_dir, split + ".tsv")
+        if use_validated_set:
+            input_clips_file = os.path.join(input_sub_dir, "validated.tsv")
+            if to_produce == -1: 
+                print("when using validated.tsv, please set number of chops to a positive number")
+                exit()
+        else:
+            input_clips_file = os.path.join(input_sub_dir, split + ".tsv")
 
 
         # open mozillas' dataset file
@@ -74,10 +74,10 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
                 # skip the first line
                 line = f.readline()
 
-				# when using the validated.tsv we have to start where we left off
-				if use_validated_set:
-					for skip in range(fast_forward):
-						f.readline()
+                # when using the validated.tsv we have to start where we left off
+                if use_validated_set:
+                    for skip in range(fast_forward):
+                        f.readline()
 
                 while True:
 
@@ -119,7 +119,7 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
                                             threshold=energy_threshold)
                         for chip in chips:
                             wav_path = os.path.join(output_dir_wav, chip[0] + ".wav")
-                            #wav.write(wav_path, chip[1], chip[2])
+                            wav.write(wav_path, chip[1], chip[2])
                             produced_files += 1
                             # remove the intermediate file
                             if remove_raw and os.path.exists(wav_path_raw):
@@ -128,15 +128,15 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
                             if to_produce != -1 and produced_files >= to_produce:
                                 done = True
                                 break
-						
+
                         if done:
-							# when using the validated.tsv we have to make sure the same
-							# speakers wont appear in more than one set. Fast-forward...
-							if use_validated_set:
-								last_speaker = speaker = line[0]
-								while speaker == last_speaker:
-									speaker = f.readline().split('\t')[0]
-									fast_forward += 1
+                            # when using the validated.tsv we have to make sure the same
+                            # speakers wont appear in more than one set. Fast-forward...
+                            if use_validated_set:
+                                last_speaker = speaker = line[0]
+                                while speaker == last_speaker:
+                                    speaker = f.readline().split('\t')[0]
+                                    fast_forward += 1
                             break
 
                     else:
@@ -148,7 +148,7 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
 
             print("Processed %d mp3 files for %s-%s" % (processed_files, lang, split))
             print("Produced  %d wav files for %s-%s" % (produced_files, lang, split))
-            
+
 
 if __name__ == '__main__':
 
@@ -187,7 +187,7 @@ if __name__ == '__main__':
     parser.add_argument("--remove_raw", type=bool, default=True,
                         help="whether to remove intermediate file")
     args = parser.parse_args()
-    
+
     # overwrite arguments when config is given
     if args.config_path:
         config = load(open(args.config_path, "rb"))
@@ -207,9 +207,9 @@ if __name__ == '__main__':
             args.sample_width      = config["sample_width"]
             args.parallelize_moz   = config["parallelize_moz"]
             args.remove_raw        = config["remove_raw"]
-			args.use_validated_set = config["use_validated_set"]
+            args.use_validated_set = config["use_validated_set"]
             language_table         = config["language_table"]
-            
+
             # copy config to output dir
             if not os.path.exists(args.cv_filtered_dir):
                 os.makedirs(args.cv_filtered_dir)
@@ -249,13 +249,13 @@ if __name__ == '__main__':
         # clips_per_language = args.max_chops
         # if language["lang"] == "unknown":
         #     clips_per_language = number_unknown
-        
+
         # prepare arguments
         function_args = (language, args.cv_dir, args.cv_filtered_dir, args.max_chops, 
                         args.audio_length_s, args.sample_rate, args.sample_width, 
                         args.allowed_downvotes, args.remove_raw, args.min_length_s,
                         args.max_silence_s, args.energy_threshold, args.use_validated_set)
-        
+
         # process current language for all splits
         if args.parallelize_moz:
             threads.append(threading.Thread(target=traverse_csv, args=function_args,
@@ -269,6 +269,6 @@ if __name__ == '__main__':
             t.start()
         for t in threads:
             t.join()
-    
+
     if args.remove_raw:
         shutil.rmtree(os.path.join(args.cv_filtered_dir, "raw"))

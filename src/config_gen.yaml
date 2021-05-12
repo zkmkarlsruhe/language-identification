@@ -2,13 +2,13 @@
 languages: ["english", "french", "german", "spanish"]
 
 # Training
-train_dir: "/data/common_voice_filtered/simple/wav/train/"
-val_dir: "/data/common_voice_filtered/simple/wav/dev/"
-audio_length_s: 10
+train_dir: "/data/common_voice_filtered/fiveSec_validated/wav/train/"
+val_dir: "/data/common_voice_filtered/fiveSec_validated/wav/dev/"
+audio_length_s: 5
 sample_rate: 16000
 feature_nu: 80
 batch_size: 32
 learning_rate: 0.001
 num_epochs: 20
 model: "attRnnSTFT"
-
+augment: False
