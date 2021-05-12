@@ -126,14 +126,14 @@ def train(config_path, log_dir, model_path):
                 
 
 		# create Generators
-		train_gen_obj = LIDGenerator(source=train_dir, target_length_s=10, shuffle=True,
+		train_gen_obj = LIDGenerator(source=train_dir, target_length_s=audio_length_s, shuffle=True,
 								languages=languages)
 		#if augment:
 		#    train_generator = batch_gen(train_gen_obj.get_generator(), batch_size, augmenter, fs, audio_length_s)
 		#else:
 		train_generator = batch_gen(train_gen_obj.get_generator(), batch_size)
 
-		val_gen_obj = LIDGenerator(source=val_dir, target_length_s=10, shuffle=True,
+		val_gen_obj = LIDGenerator(source=val_dir, target_length_s=audio_length_s, shuffle=True,
 								languages=languages)
 		val_generator = batch_gen(val_gen_obj.get_generator(), batch_size)
 		print('===== EPOCH ', str(epoch), ' ======')
