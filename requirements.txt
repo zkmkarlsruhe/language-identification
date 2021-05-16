@@ -9,6 +9,5 @@ python_speech_features
 nlpaug
 librosa
 pyyaml
-# kapre==0.2.0
 Flask
 kapre

@@ -63,16 +63,3 @@ def to_array(data, sample_width, channels):
         return np.array(array(fmt, data))
     return separate_channels(data, fmt, channels)
 
-
-if __name__ == '__main__':
-
-    length = 10
-    to_be_padded = np.ones(shape=(length,))
-
-    for i in range(1, length):
-        to_be_padded[i] = i
-
-    padded = pad_with_data(to_be_padded, 378)
-
-    print(to_be_padded)
-    print(padded)

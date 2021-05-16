@@ -7,7 +7,6 @@ from yaml import load
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, CSVLogger, EarlyStopping, ReduceLROnPlateau
 from tensorflow.keras.optimizers import Adam, RMSprop, SGD
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import Precision, Recall, CategoricalAccuracy
@@ -16,39 +15,12 @@ from tensorflow.keras.utils import Progbar
 
 import models
 from utils.training_utils import *
-from audio.generators import LIDGenerator
+from audio.generators import AugBatchGenerator
 from audio.augment import AudioAugmenter
-from audio.utils import pad_with_silence
-from audio.features import normalize
 
 # physical_devices = tf.config.experimental.list_physical_devices('GPU')
 # config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-def batch_gen(generator, batch_size, augmenter=None, fs=None, desired_audio_length_s=10):
-	x_batch = []
-	y_batch = []
-	i=0
-	while True:
-		try:
-			x,y = next(generator)
-			if augmenter:
-				x = augmenter.augment_audio_array(x, fs)
-				x = pad_with_silence(x, desired_audio_length_s *fs)
-			x = normalize(x)
-			x_batch.append(x)
-			y_batch.append(y)
-			i += 1
-			if i == batch_size:
-				x_arr = np.asarray(x_batch)
-				y_arr = np.asarray(y_batch)
-				yield x_arr, y_arr
-				i = 0
-				x_batch = []
-				y_batch = []
-		except StopIteration as e:
-				if len(x_batch) > 0:
-					yield x_batch, y_batch
-				break
 					
 def train(config_path, log_dir, model_path):
 
@@ -123,29 +95,33 @@ def train(config_path, log_dir, model_path):
 		print ('Epoch ended with: \tmean(loss): %.4f \tmean(acc): %.4f\n' % (epoch_loss, epoch_acc))
 
 		return epoch_acc, epoch_loss
+		
 
+	# create generator objects
+	if augment:
+		augmenter = AudioAugmenter(fs)
+		train_gen_obj = AugBatchGenerator(source=train_dir, target_length_s=audio_length_s,
+										languages=languages, batch_size=batch_size, 
+										augmenter=augmenter, fs=fs)
+	else:
+		train_gen_obj = AugBatchGenerator(source=train_dir, target_length_s=audio_length_s,
+										languages=languages, batch_size=batch_size)
+	val_gen_obj = AugBatchGenerator(source=val_dir, target_length_s=audio_length_s,
+									languages=languages)
 
-	# Epochs Loop
+	# get generators
+	val_generator = val_gen_obj.get_generator()
+	train_generator = train_gen_obj.get_generator()
+
+	# dataset info
+	train_num_batches = train_gen_obj.get_num_files() // batch_size
+	val_num_batches = val_gen_obj.get_num_files() // batch_size
+
+	# Training loop
 	best_val_acc = 0.0
 	for epoch in range(1, num_epochs+1):
                 
-		# create train generator
-		train_gen_obj = LIDGenerator(source=train_dir, target_length_s=audio_length_s, shuffle=True,
-								languages=languages)
-		if augment:
-			augmenter = AudioAugmenter(fs)
-			train_generator = batch_gen(train_gen_obj.get_generator(), batch_size, augmenter, fs, audio_length_s)
-		else:
-			train_generator = batch_gen(train_gen_obj.get_generator(), batch_size)
-
-		# create val generator
-		val_gen_obj = LIDGenerator(source=val_dir, target_length_s=audio_length_s, shuffle=True,
-								languages=languages)
-		val_generator = batch_gen(val_gen_obj.get_generator(), batch_size)
-
 		print('===== EPOCH ', str(epoch), ' ======')
-		train_num_batches = train_gen_obj.get_num_files() // batch_size
-		val_num_batches = val_gen_obj.get_num_files() // batch_size
 
 		# train
 		train_acc, train_loss = run_epoch(train_generator, train_num_batches, training=True)
@@ -164,6 +140,9 @@ def train(config_path, log_dir, model_path):
 		if val_acc > best_val_acc:
 			best_val_acc = val_acc
 			model.save(os.path.join(log_dir, 'model' + "_" + str(epoch)))
+
+		train_gen_obj.reset()
+		val_gen_obj.reset()
 		
 	return
 

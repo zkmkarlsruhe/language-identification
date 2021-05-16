@@ -14,11 +14,9 @@ import fnmatch
 import scipy.io.wavfile as wav
 import tensorflow as tf
 
-def pad_with_silence(data, max_len):
-	to_add = max(max_len - len(data), 0)
-	padded = np.pad(data, (0, to_add), mode='constant', constant_values=0)
-	return padded
-
+from audio.augment import AudioAugmenter
+from audio.utils import pad_with_silence
+from audio.features import normalize
 
 def recursive_glob(path, pattern):
 	for root, dirs, files in os.walk(path):
@@ -107,7 +105,7 @@ class AudioGenerator(object):
 class LIDGenerator(object):
 	def __init__(self, source, target_length_s, shuffle=True, languages=[], dtype="float32"):
 		"""
-		A class for generating audio samples of equal length either from directories
+		A class for generating labeled audio samples of equal length from directories
 		Labels for each language are generated in alphanumerical order (chinese, english, kabyle, ...).
 
 		:param source: directory containing directories for each language
@@ -121,14 +119,17 @@ class LIDGenerator(object):
 		self.target_length_s = target_length_s
 		self.languages = sorted(languages)
 		self.num_classes = len(languages)
-		self.active_generators = [i for i in range(0, self.num_classes)]
 		self.dtype = dtype
 		if len(languages) == 0:
 			print("Please provide at least one language")
-		self.generators = [AudioGenerator(source=os.path.join(source, language), 
-									target_length_s=target_length_s, dtype=dtype,
-									shuffle=shuffle) 
-									for language in languages]
+		self.reset()
+
+	def reset(self):
+		self.active_generators = [i for i in range(0, self.num_classes)]
+		self.generators = [AudioGenerator(source=os.path.join(self.source, language), 
+									target_length_s=self.target_length_s, dtype=self.dtype,
+									shuffle=self.shuffle, run_only_once=True) 
+									for language in self.languages]
 		self.pipelines = [gen.get_generator() for gen in self.generators]
 
 	def get_generator(self):
@@ -151,6 +152,63 @@ class LIDGenerator(object):
 		return sum([gen.get_num_files() for gen in self.generators])
 
 
+class AugBatchGenerator():
+
+	def __init__(self, source, target_length_s, languages=[], batch_size=32, augmenter=None, fs=None):
+		'''
+		A class for generating batched and augmented labeled audio samples of equal length from directories
+		Labels for each language are generated in alphanumerical order (chinese, english, kabyle, ...).
+
+		:param source: directory containing directories for each language
+		:param target_length_s: the length of the desired audio chunks in seconds
+		:param languages: a list of the sub directories containing audio
+		:param batch_size: amount of samples per patch
+		:param augmenter: augment object
+		:param fs: sampling frequency
+		'''
+
+		self.source = source
+		self.target_length_s = target_length_s
+		self.languages = sorted(languages)
+		self.num_classes = len(languages)
+		self.batch_size = batch_size
+		self.augmenter = augmenter
+		self.fs = fs
+		self.reset()
+
+	def reset(self):
+		self.generatorObj = LIDGenerator(source=self.source, languages=self.languages
+										target_length_s=self.target_length_s, shuffle=True)
+		self.generator = self.generatorObj.get_generator()
+
+	def get_generator(self):
+		x_batch = []
+		y_batch = []
+		i=0
+		while True:
+			try:
+				x,y = next(self.generator)
+				if self.augmenter:
+					x = self.augmenter.augment_audio_array(x, fs)
+					x = pad_with_silence(x, desired_audio_length_s *fs)
+				x = normalize(x)
+				x_batch.append(x)
+				y_batch.append(y)
+				i += 1
+				if i == batch_size:
+					x_arr = np.asarray(x_batch)
+					y_arr = np.asarray(y_batch)
+					yield x_arr, y_arr
+					i = 0
+					x_batch = []
+					y_batch = []
+			except StopIteration as e:
+					if len(x_batch) > 0:
+						yield x_batch, y_batch
+					break
+
+
+
 if __name__ == "__main__":
 
 	source = ""
@@ -162,7 +220,7 @@ if __name__ == "__main__":
 		print(onehot)
 
 
-	a = AudioGenerator("../lid_client/test/", 10, shuffle=True, run_only_once=True)
+	a = AudioGenerator(source, 10, shuffle=True, run_only_once=True)
 	gen = a.get_generator()
 
 	i = 0

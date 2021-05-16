@@ -1,11 +1,10 @@
 
 languages: ["english","farsi","french","german","mandarin","spanish","polish","russian"]
-
-# Training
 train_dir: "/data/common_voice_filtered/fiveSec_validated/wav/train/"
 val_dir: "/data/common_voice_filtered/fiveSec_validated/wav/dev/"
 audio_length_s: 5
 sample_rate: 16000
+
 batch_size: 128
 learning_rate: 0.001
 num_epochs: 20
