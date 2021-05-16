@@ -42,7 +42,7 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import scipy.io.wavfile as wav
 
-    file_name = "../../../language-identification-system/lid_client/test/paul_deutsch.wav"
+    file_name = ""
     fs, arr = wav.read(filename=file_name)
     a = AudioAugmenter(fs)
 

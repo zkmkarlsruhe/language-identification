@@ -25,11 +25,13 @@ def create_model(config):
 
     inputs = Input((input_length,), name='input')
     x = Reshape((1, -1))(inputs)
+	
     m = Melspectrogram(n_dft=1024, n_hop=128, input_shape=(1, input_length), 
             padding='same', sr=sample_rate, n_mels=feature_nu, fmin=40.0, fmax=sample_rate/2,
             power_melgram=1.0, return_decibel_melgram=True, trainable_fb=False,
             trainable_kernel=False, name='mel_stft')
     m.trainable = False
+
     x = m(x)
     x = Normalization2D(int_axis=0, name='mel_stft_norm')(x)
 

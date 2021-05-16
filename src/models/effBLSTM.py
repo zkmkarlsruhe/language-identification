@@ -22,14 +22,6 @@ def create_model(config):
 
     x = Reshape((_x, _y * _c))(x)
 
-    # x = Convolution1D(1024, 1, kernel_regularizer=l2(weight_decay))(x)
-    # x = BatchNormalization()(x)
-    # x = relu(x)
-
-    # x = Convolution1D(256, 1, kernel_regularizer=l2(weight_decay))(x)
-    # x = BatchNormalization()(x)
-    # x = relu(x)
-
     x = Bidirectional(LSTM(512, return_sequences=False), merge_mode="concat")(x)
 
     predictions = Dense(len(config["languages"]), activation='softmax')(x)

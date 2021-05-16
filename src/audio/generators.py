@@ -107,12 +107,12 @@ class AudioGenerator(object):
 class LIDGenerator(object):
 	def __init__(self, source, target_length_s, shuffle=True, languages=[], dtype="float32"):
 		"""
-		A class for generating audio samples of equal length either from directory or file
+		A class for generating audio samples of equal length either from directories
 		Labels for each language are generated in alphanumerical order (chinese, english, kabyle, ...).
 
 		:param source: directory containing directories for each language
 		:param target_length_s: the length of the desired audio chunks in seconds
-		:param languages: a list of sub directories containing audio
+		:param languages: a list of the sub directories containing audio
 		:param shuffle: whether to shuffle the list of the directory content before processing
 		:param dtype: type of output
 		"""
@@ -143,8 +143,6 @@ class LIDGenerator(object):
 			try:
 				audio, fs, name = next(self.pipelines[rand_gen_index])
 				label = tf.keras.utils.to_categorical(rand_gen_index, self.num_classes)
-				# onehot = [i == rand_int for i in range(0, len(self.languages))]
-				# yield [audio, self.languages[rand_int], onehot]
 				yield (audio, label)
 			except StopIteration as e:
 				self.active_generators.remove(rand_gen_index)
@@ -155,7 +153,7 @@ class LIDGenerator(object):
 
 if __name__ == "__main__":
 
-	source = "../../../data/augmented/test/"
+	source = ""
 	b = LIDGenerator(source, 10, True, ["spanish", "english"])
 	gen = b.get_generator()
 	for audio, label, onehot in gen:

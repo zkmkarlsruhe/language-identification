@@ -1,6 +1,7 @@
 import os
 import shutil
 import argparse
+import time
 from datetime import datetime
 from yaml import load
 
@@ -11,129 +12,176 @@ from tensorflow.keras.optimizers import Adam, RMSprop, SGD
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import Precision, Recall, CategoricalAccuracy
 from tensorflow.keras.models import load_model
+from tensorflow.keras.utils import Progbar
 
 import models
 from utils.training_utils import *
+from audio.generators import LIDGenerator
+from audio.augment import AudioAugmenter
+from audio.utils import pad_with_silence
+from audio.features import normalize
 
+# physical_devices = tf.config.experimental.list_physical_devices('GPU')
+# config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
+def batch_gen(generator, batch_size, augmenter=None, fs=None, desired_audio_length_s=10):
+	x_batch = []
+	y_batch = []
+	i=0
+	while True:
+		try:
+			x,y = next(generator)
+			if augmenter:
+				x = augmenter.augment_audio_array(x, fs)
+				x = pad_with_silence(x, desired_audio_length_s *fs)
+			x = normalize(x)
+			x_batch.append(x)
+			y_batch.append(y)
+			i += 1
+			if i == batch_size:
+				x_arr = np.asarray(x_batch)
+				y_arr = np.asarray(y_batch)
+				yield x_arr, y_arr
+				i = 0
+				x_batch = []
+				y_batch = []
+		except StopIteration as e:
+				if len(x_batch) > 0:
+					yield x_batch, y_batch
+				break
+					
 def train(config_path, log_dir, model_path):
 
-    # Config
-    config = load(open(config_path, "rb"))
-    if config is None:
-        print("Please provide a config.")
+	# Config
+	config = load(open(config_path, "rb"))
+	if config is None:
+		print("Please provide a config.")
 
-    train_dir = config["train_dir"]
-    val_dir = config["val_dir"]
-    batch_size = config["batch_size"]
-    img_height = config["input_shape"][0]
-    img_width = config["input_shape"][1]
-    color_mode = config["color_mode"]
-    seed = config["seed"]
+	train_dir = config["train_dir"]
+	val_dir = config["val_dir"]
+	batch_size = config["batch_size"]
+	languages = config["languages"]
+	num_epochs = config["num_epochs"]
+	fs = config["sample_rate"]
+	audio_length_s = config["audio_length_s"]
+	augment = config["augment"]
 
-    # Dataset
-    train_ds = tf.keras.preprocessing.image_dataset_from_directory(
-        train_dir,
-        seed=seed,
-        label_mode="categorical",
-        color_mode=color_mode,
-        image_size=(img_height, img_width),
-        batch_size=batch_size,
-        shuffle=True)
+	# create or load the model
+	if model_path:
+		model = load_model(model_path)
+	else:
+		model_class = getattr(models, config["model"])
+		model = model_class.create_model(config)
+		optimizer = Adam(lr=config["learning_rate"])
 
-    val_ds = tf.keras.preprocessing.image_dataset_from_directory(
-        val_dir,
-        seed=seed,
-        label_mode="categorical",
-        color_mode=color_mode,
-        image_size=(img_height, img_width),
-        batch_size=batch_size,
-        shuffle=True)
+	model.compile()
+	print(model.summary())
+	
+	def run_epoch(batch_generator, num_batches, training):
+		''' train or validate over an epoch
+		'''
+		loss_fn = CategoricalCrossentropy()
+		accuracy_fn = CategoricalAccuracy()
+		accuracy_epoch = []
+		loss_epoch = []
 
-    if color_mode == "rgba":
-        num_channels = 4
-    elif color_mode == "rgb":
-        num_channels = 3
-    else:
-        num_channels = 1
+		if training:
+			print('______ TRAINING ______')
+		else:
+			print('_____ VALIDATION ______')
 
-    ts_shape = (batch_size, img_height, img_width, num_channels)
+		metrics_names = ['loss', 'acc']
+		pb = Progbar(num_batches, stateful_metrics=metrics_names)
 
-    print("Input image shape:", ts_shape[1:])
-    print("Output classes:", train_ds.class_names)
+		# Iterate over the batches of a dataset
+		for x_batch, y_batch in batch_generator:
+			x_batch = np.expand_dims(x_batch, axis=-1)
 
-    # normalize images
-    def process(image, label):
-        image = tf.cast(image / 255., tf.float32)
-        return image, label
+			with tf.GradientTape() as tape:
+				# run the model
+				logits = model(x_batch, training=training)
 
-    train_ds = train_ds.map(process, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    val_ds = val_ds.map(process, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+				# calculate loss & metrics
+				loss_value = loss_fn(y_batch, logits)
+				accuracy_fn.update_state(y_batch, logits)
 
-    # prefetch data
-    train_ds = train_ds.prefetch(tf.data.experimental.AUTOTUNE)
-    val_ds = val_ds.prefetch(tf.data.experimental.AUTOTUNE)
+			# optimize
+			if training:
+				grads = tape.gradient(loss_value, model.trainable_weights)
+				optimizer.apply_gradients(zip(grads, model.trainable_weights))
+				
+			# report loss & metrics per batch
+			accuracy = accuracy_fn.result()
+			values=[('loss', loss_value), ('acc', accuracy)]
+			pb.add(1, values=values)
+			loss_epoch.append(loss_value)
+			accuracy_epoch.append(accuracy)
 
-    # Training Callbacks
-    checkpoint_filename = os.path.join(log_dir, "trained_models", "weights.{epoch:02d}")
-    model_checkpoint_callback = ModelCheckpoint(checkpoint_filename, save_best_only=True, verbose=1,
-                                                monitor="val_categorical_accuracy",
-                                                save_weights_only=False)
-    tensorboard_callback = TensorBoard(log_dir=log_dir, write_images=True)
-    csv_logger_callback = CustomCSVCallback(os.path.join(log_dir, "log.csv"))
-    early_stopping_callback = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1, mode="min")
-    reduce_on_plateau = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=1, verbose=1, min_lr=0.000001,
-                                          min_delta=0.001)
+		# report loss & metrics per epoch
+		epoch_loss = np.mean(loss_epoch)
+		epoch_acc = np.mean(accuracy_epoch)
+		print ('Epoch ended with: \tmean(loss): %.4f \tmean(acc): %.4f\n' % (epoch_loss, epoch_acc))
 
-    # Model Generation
-    if model_path:
-        model = load_model(model_path)
-    else:
-        model_class = getattr(models, config["model"])
-        model = model_class.create_model(config)
-        optimizer = Adam(lr=config["learning_rate"])
-        # optimizer = RMSprop(lr=config["learning_rate"], rho=0.9, epsilon=1e-08, decay=0.95)
-        # optimizer = SGD(lr=config["learning_rate"], decay=1e-6, momentum=0.9, clipnorm=1, clipvalue=10)
-        model.compile(optimizer=optimizer,
-                      loss=CategoricalCrossentropy(),
-                      metrics=[Recall(), Precision(), CategoricalAccuracy()]
-                      )
-    print(model.summary())
+		return epoch_acc, epoch_loss
 
-    # Training
-    history = model.fit(x=train_ds,
-                        epochs=config["num_epochs"],
-                        callbacks=[model_checkpoint_callback,
-                                   tensorboard_callback,
-                                   csv_logger_callback,
-                                   # early_stopping_callback,
-                                   reduce_on_plateau
-                                   ],
-                        validation_data=val_ds)
 
-    # visualize_results(history, config)
+	# Epochs Loop
+	best_val_acc = 0.0
+	for epoch in range(1, num_epochs+1):
+                
+		# create train generator
+		train_gen_obj = LIDGenerator(source=train_dir, target_length_s=audio_length_s, shuffle=True,
+								languages=languages)
+		if augment:
+			augmenter = AudioAugmenter(fs)
+			train_generator = batch_gen(train_gen_obj.get_generator(), batch_size, augmenter, fs, audio_length_s)
+		else:
+			train_generator = batch_gen(train_gen_obj.get_generator(), batch_size)
 
-    # Do evaluation on model with best validation accuracy
-    best_epoch = np.argmax(history.history["val_categorical_accuracy"])
-    print("Log files: ", log_dir)
-    print("Best epoch: ", best_epoch)
-    return checkpoint_filename.replace("{epoch:02d}", "{:02d}".format(best_epoch))
+		# create val generator
+		val_gen_obj = LIDGenerator(source=val_dir, target_length_s=audio_length_s, shuffle=True,
+								languages=languages)
+		val_generator = batch_gen(val_gen_obj.get_generator(), batch_size)
+
+		print('===== EPOCH ', str(epoch), ' ======')
+		train_num_batches = train_gen_obj.get_num_files() // batch_size
+		val_num_batches = val_gen_obj.get_num_files() // batch_size
+
+		# train
+		train_acc, train_loss = run_epoch(train_generator, train_num_batches, training=True)
+
+		# validate
+		val_acc, val_loss = run_epoch(val_generator, val_num_batches, training=False)
+
+		# log data
+		lr = round(float(get_value(optimizer.learning_rate)), 6)
+		logs = {'epoch': epoch, 'learning_rate': lr, 
+				'train_acc': train_acc, 'train_loss': train_loss, 
+				'val_acc': val_acc, 'val_loss': val_loss}
+		write_csv(os.path.join(log_dir, 'log.csv'), logs)
+
+		# save model
+		if val_acc > best_val_acc:
+			best_val_acc = val_acc
+			model.save(os.path.join(log_dir, 'model' + "_" + str(epoch)))
+		
+	return
 
 
 if __name__ == "__main__": 
-    tf.config.list_physical_devices('GPU')
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--model_path', default=None)
-    parser.add_argument('--config', default="config.yaml")
-    cli_args = parser.parse_args()
+	tf.config.list_physical_devices('GPU')
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--model_path', default=None)
+	parser.add_argument('--config', default="config.yaml")
+	cli_args = parser.parse_args()
 
-    log_dir = os.path.join("logs", datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
-    print("Logging to {}".format(log_dir))
+	log_dir = os.path.join("logs", datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
+	print("Logging to {}".format(log_dir))
 
-    # copy models & config for later
-    shutil.copytree("models", os.path.join(log_dir, "models"))
-    shutil.copy(cli_args.config, log_dir)
+	# copy models & config for later
+	shutil.copytree("models", os.path.join(log_dir, "models"))
+	shutil.copy(cli_args.config, log_dir)
 
-    model_file_name = train(cli_args.config, log_dir, cli_args.model_path)
-    print("Best model at: ", model_file_name)
+	model_file_name = train(cli_args.config, log_dir, cli_args.model_path)
+	print("Best model at: ", model_file_name)
 

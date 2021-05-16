@@ -20,23 +20,17 @@ from audio.augment import AudioAugmenter
 from audio.features import signal_to_features, normalize
 
 
-def process_audio_dir(
-    lang,
-    wav_dir,
-    aug_dir = None,
-    img_dir = None,
-    audio_length_s = 10,
-    augment_nu = 5,
-    feature_type = "mfcc",
-    frame_size_ms = "20",
-    feature_nu = 12):
+def process_audio_dir(lang, wav_dir, aug_dir = None, img_dir = None,
+				audio_length_s = 10, augment_nu = 5, feature_type = "mfcc",
+				frame_size_ms = "20", feature_nu = 12):
 
     # create dirs
     if aug_dir:
         if not os.path.exists(aug_dir):
             os.makedirs(aug_dir)
-    if not os.path.exists(img_dir):
-        os.makedirs(img_dir)
+    if img_dir:
+		if not os.path.exists(img_dir):
+        	os.makedirs(img_dir)
 
     # create generator
     generator = AudioGenerator(source=os.path.join(wav_dir, lang),
@@ -131,7 +125,7 @@ if __name__ == "__main__":
         config = load(open(args.config_path, "rb"))
         if config is None:
                 print("Could not find config file")
-                exit(-1)
+                exit()
         args.wav_dir         = config["wav_dir"]
         args.audio_length_s  = config["audio_length_s"]
         args.parallelize_pro = config["parallelize_pro"]
@@ -155,12 +149,12 @@ if __name__ == "__main__":
     # assertions
     if args.wav_dir == None:
         print("No wave source dir provided!")
-        exit(-1)
+        exit()
     if args.img_dir == None:
         print("Please provide an output dir")
-        exit(-1)
+        exit()
 
-    splits = ["dev", "test"]
+    splits = ["train", "dev", "test"]
     for split in splits:
         
         # append paths with current split 

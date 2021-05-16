@@ -124,7 +124,7 @@ def signal_to_features(signal, fs, len_segment_ms=20, num_features=128,
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
-    test_file = "../../../language-identification-system/lid_client/test/paul_deutsch.wav"
+    test_file = ""
     fs, audio = wav.read(test_file)
 
     mfcc_array = signal_to_features(audio, fs, 20, 13, audio_feature="mfcc")
