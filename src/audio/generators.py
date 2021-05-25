@@ -14,9 +14,9 @@ import fnmatch
 import scipy.io.wavfile as wav
 import tensorflow as tf
 
-from audio.augment import AudioAugmenter
-from audio.utils import pad_with_silence
-from audio.features import normalize
+from .augment import AudioAugmenter
+from .utils import pad_with_silence
+from .features import normalize
 
 def recursive_glob(path, pattern):
 	for root, dirs, files in os.walk(path):
@@ -28,17 +28,20 @@ def recursive_glob(path, pattern):
 
 
 class AudioGenerator(object):
-	def __init__(self, source, target_length_s, shuffle=True, run_only_once=True, dtype="float32", minimum_length=0.5):
+	def __init__(self, source, target_length_s, shuffle=True, run_only_once=True,
+				dtype="float32", minimum_length=0.5):
 		"""
-		A class for generating audio samples of equal length either from directory or file
+		A class for generating audio samples of equal length either from directory or file.
 
-		:param source: may be a file or directory containing audio files
-		:param target_length_s: the length of the desired audio chunks in seconds
-		:param shuffle: whether to shuffle the list of the directory content before processing
-		:param run_only_once: whether to stop after all chunks have been yielded once
-		:param dtpye: type of output
-		:param minimum_length: minimum length of the audio chunk in percentage
+		Args:
+			source (str): may be a file or directory containing audio files
+			target_length_s (float):  the length of the desired audio chunks in seconds
+			shuffle (bool, optional): whether to shuffle the list. Defaults to True.
+			run_only_once (bool, optional): whether to stop after all chunks have been yielded once. Defaults to True.
+			dtype (str, optional): output data tpe. Defaults to "float32".
+			minimum_length (float, optional):  minimum length of the audio chunk in percentage. Defaults to 0.5.
 		"""
+
 		self.source = source
 		self.shuffle = shuffle
 		self.target_length_s = target_length_s
@@ -74,7 +77,8 @@ class AudioGenerator(object):
 					slice_start = int(i * target_length)
 					slice_end = int(slice_start + target_length)
 					rest = len(audio) - slice_start
-					# if we have only one segment left and there is at least minimum_length data pad it with silence
+					# if we have only one segment left and there is at least
+					#  minimum_length data pad it with silence
 					if i == num_segments:
 						if rest >= target_length * self.minimum_length:
 							chunk = pad_with_silence(audio[slice_start:], target_length)
@@ -103,16 +107,18 @@ class AudioGenerator(object):
 
 
 class LIDGenerator(object):
-	def __init__(self, source, target_length_s, shuffle=True, languages=[], dtype="float32"):
-		"""
-		A class for generating labeled audio samples of equal length from directories
+	def __init__(self, source, target_length_s, shuffle=True, languages=[],
+				dtype="float32"):
+		"""	
+		A class for generating labeled audio samples of equal length from directories.
 		Labels for each language are generated in alphanumerical order (chinese, english, kabyle, ...).
 
-		:param source: directory containing directories for each language
-		:param target_length_s: the length of the desired audio chunks in seconds
-		:param languages: a list of the sub directories containing audio
-		:param shuffle: whether to shuffle the list of the directory content before processing
-		:param dtype: type of output
+		Args:
+			source (str): directory containing directories for each language
+			target_length_s (float): the length of the desired audio chunks in seconds
+			shuffle (bool, optional): whether to shuffle the list of paths before yielding. Defaults to True.
+			languages (list, optional): a list of the sub directories containing audio. Defaults to [].
+			dtype (str, optional): output data type. Defaults to "float32".
 		"""
 		self.source = source
 		self.shuffle = shuffle
@@ -154,18 +160,19 @@ class LIDGenerator(object):
 
 class AugBatchGenerator():
 
-	def __init__(self, source, target_length_s, languages=[], batch_size=32, augmenter=None, fs=None):
-		'''
-		A class for generating batched and augmented labeled audio samples of equal length from directories
-		Labels for each language are generated in alphanumerical order (chinese, english, kabyle, ...).
+	def __init__(self, source, target_length_s, languages=[], batch_size=32,
+				augmenter=None):
+		"""
+		A wrapper class around LidGenerator for generating batches.
+		Batches can be augmented if necessary.
 
-		:param source: directory containing directories for each language
-		:param target_length_s: the length of the desired audio chunks in seconds
-		:param languages: a list of the sub directories containing audio
-		:param batch_size: amount of samples per patch
-		:param augmenter: augment object
-		:param fs: sampling frequency
-		'''
+		Args:
+			source (str): directory containing directories for each language
+			target_length_s (float): the length of the desired audio chunks in seconds
+			languages (list, optional): a list of the sub directories containing audio. Defaults to [].
+			batch_size (int, optional): amount of samples per batch. Defaults to 32.
+			augmenter (AudioAugmenter, optional): augment object. Defaults to None.
+		"""
 
 		self.source = source
 		self.target_length_s = target_length_s
@@ -173,11 +180,10 @@ class AugBatchGenerator():
 		self.num_classes = len(languages)
 		self.batch_size = batch_size
 		self.augmenter = augmenter
-		self.fs = fs
 		self.reset()
 
 	def reset(self):
-		self.generatorObj = LIDGenerator(source=self.source, languages=self.languages
+		self.generatorObj = LIDGenerator(source=self.source, languages=self.languages,
 										target_length_s=self.target_length_s, shuffle=True)
 		self.generator = self.generatorObj.get_generator()
 
@@ -188,14 +194,15 @@ class AugBatchGenerator():
 		while True:
 			try:
 				x,y = next(self.generator)
-				if self.augmenter:
-					x = self.augmenter.augment_audio_array(x, fs)
-					x = pad_with_silence(x, desired_audio_length_s *fs)
-				x = normalize(x)
 				x_batch.append(x)
 				y_batch.append(y)
 				i += 1
-				if i == batch_size:
+				if i == self.batch_size:
+					if self.augmenter:
+						x_batch = self.augmenter.augment_audio_array(x_batch)
+					# TODO speed up normalization
+					for i in range(len(x_batch)):
+						x_batch[i] = normalize(x_batch[i])
 					x_arr = np.asarray(x_batch)
 					y_arr = np.asarray(y_batch)
 					yield x_arr, y_arr
@@ -205,8 +212,27 @@ class AugBatchGenerator():
 			except StopIteration as e:
 					if len(x_batch) > 0:
 						yield x_batch, y_batch
+					self.reset()
 					break
 
+	def get_num_files(self):
+		return self.generatorObj.get_num_files()
+
+	def count_batches(self):
+		"""
+		Exhaust the generator to count the number of batches. Then reset.
+
+		Returns:
+			int: number of batches in the dataset
+		"""
+		i = 0
+		while True:
+			try:
+				x,y = next(self.generator)
+				i += 1
+			except StopIteration as e:
+				self.reset()
+				return np.ceil(i / self.batch_size)
 
 
 if __name__ == "__main__":
