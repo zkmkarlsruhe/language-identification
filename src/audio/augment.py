@@ -9,7 +9,8 @@ This package is published under GNU GPL Version 3.
 
 import nlpaug.flow as flow
 import nlpaug.augmenter.audio as naa
-
+from audio.utils import pad_with_silence
+from audio.features import normalize  
 
 class AudioAugmenter(object):
     def __init__(self, fs):
@@ -24,18 +25,21 @@ class AudioAugmenter(object):
         self._aug_flow = flow.Sequential([
             shift,
             crop,
-            vltp,
+            # vltp,
             # speed,
             # pitch,
             noise,
         ])
 
-    def augment_audio_array(self, signal, fs):
-        assert fs == self._fs
-        data = signal.astype(dtype="float32")
-        augmented_data = self._aug_flow.augment(data)
-        return augmented_data.astype(dtype="float32")
-
+    def augment_audio_array(self, signals, fs):
+        # assert fs == self._fs
+        # data = signal.astype(dtype="float32")
+        augmented_data = self._aug_flow.augment(signals, num_thread=8)
+        data = []
+        for x in augmented_data:
+            x = pad_with_silence(x, 5 *fs)
+            data.append(x)
+        return data
 
 if __name__ == "__main__":
 

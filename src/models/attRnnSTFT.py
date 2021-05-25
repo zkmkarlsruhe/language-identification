@@ -75,7 +75,9 @@ def create_model(config):
 	attVector = Dot(axes=[1, 1])([attScores, x])  # [b_s, vec_dim]
 
 	x = Dense(64, activation='relu')(attVector)
+	x = Dropout(0.25)(x)
 	x = Dense(32)(x)
+	x = Dropout(0.25)(x)
 
 	output = Dense(len(config["languages"]), activation='softmax', name='output')(x)
 

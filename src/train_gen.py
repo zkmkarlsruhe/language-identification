@@ -31,14 +31,14 @@ def batch_gen(generator, batch_size, augmenter=None, fs=None, desired_audio_leng
 	while True:
 		try:
 			x,y = next(generator)
-			if augmenter:
-				x = augmenter.augment_audio_array(x, fs)
-				x = pad_with_silence(x, desired_audio_length_s *fs)
-			x = normalize(x)
 			x_batch.append(x)
 			y_batch.append(y)
 			i += 1
 			if i == batch_size:
+				if augmenter:
+					x_batch = augmenter.augment_audio_array(x_batch, fs)
+				for i in range(len(x_batch)):
+					x_batch[i] = normalize(x_batch[i])
 				x_arr = np.asarray(x_batch)
 				y_arr = np.asarray(y_batch)
 				yield x_arr, y_arr
@@ -148,7 +148,11 @@ def train(config_path, log_dir, model_path):
 		logs = {'train_acc': train_acc, 'train_loss': train_loss, 
 		 'val_acc': val_acc, 'val_loss': val_loss}
 
-		model.save(os.path.join(log_dir, 'model' + "_" + str(epoch + 1)))
+		@tf.function(input_signature=[tf.TensorSpec((1, audio_length_s*fs, 1), dtype=tf.float32)])
+		def model_predict(input_1):
+			return {'outputs': model(input_1, training=False)}
+
+		model.save(os.path.join(log_dir, 'model' + "_" + str(epoch + 1)), signatures={'serving_default': model_predict})
 		write_csv(os.path.join(log_dir, 'log.csv'), optimizer, epoch, logs)
 		
 

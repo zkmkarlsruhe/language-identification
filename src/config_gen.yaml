@@ -1,14 +1,15 @@
 
-languages: ["english","farsi","french","german","mandarin","spanish","polish","russian"]
+#languages: ["__noise","english","farsi","french","german","mandarin","spanish","polish","russian"]
+languages: ["__noise","english","french","german","spanish"]
 
 # Training
-train_dir: "/data/common_voice_filtered/fiveSec_validated/wav/train/"
-val_dir: "/data/common_voice_filtered/fiveSec_validated/wav/dev/"
+train_dir: "/data/common_voice_filtered/fiveSec/wav/train/"
+val_dir: "/data/common_voice_filtered/fiveSec/wav/test/"
 audio_length_s: 5
 sample_rate: 16000
 feature_nu: 80
-batch_size: 128
+batch_size: 64
 learning_rate: 0.001
 num_epochs: 20
 model: "attRnnSTFT"
-augment: False
+augment: True

@@ -22,6 +22,8 @@ def normalize(signal):
     normalize a float signal to have a maximum absolute value of 1.0
     """
     maximum = max(abs(signal.max()), abs(signal.min()))
+    if maximum == 0.0:
+        return signal
     return signal / float(maximum)
 
 
