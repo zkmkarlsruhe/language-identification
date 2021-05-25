@@ -42,12 +42,12 @@ class AudioAugmenter(object):
 		Returns:
 			[list]: a list of augmented signals padded to 
 		"""
-		augmented_data = self._aug_flow.augment(data, num_thread=8)
+		augmented_data = self._aug_flow.augment(signal, num_thread=8)
 
 		# TODO write a custom audio augementer for padding
 		data = []
 		for x in augmented_data:
-			x = pad_with_silence(x, self.target_length_s * fs)
+			x = pad_with_silence(x, self.target_length_s * self.fs)
 			data.append(x)
 			
 		return data
