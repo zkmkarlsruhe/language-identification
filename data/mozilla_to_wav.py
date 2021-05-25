@@ -29,7 +29,10 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
                 desired_audio_length_s, sample_rate, sample_width,
                 allowed_downvotes, remove_raw, min_length_s, max_silence_s,
                 energy_threshold, use_validated_set):
-
+	"""
+	travers the language specific file, extract and save important samples.
+	"""
+	
     lang = language["lang"]
     lang_abb = language["dir"]
 
@@ -117,9 +120,9 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
                                             desired_length_s=desired_audio_length_s,
                                             min_length_s=min_length_s, max_silence_s=max_silence_s,
                                             threshold=energy_threshold)
-                        for chip in chips:
-                            wav_path = os.path.join(output_dir_wav, chip[0] + ".wav")
-                            wav.write(wav_path, chip[1], chip[2])
+                        for chip_name, chip_fs, chip_data in chips:
+                            wav_path = os.path.join(output_dir_wav, chip_name + ".wav")
+                            wav.write(wav_path, chip_fs, chip_data)
                             produced_files += 1
                             # remove the intermediate file
                             if remove_raw and os.path.exists(wav_path_raw):

@@ -14,9 +14,9 @@ from yaml import load
 
 # from data.generators import SpectrogramGenerator
 
-from src.audio.features import signal_to_features, normalize
-from src.audio.generators import AudioGenerator
-import src.models as models
+from ..audio.features import signal_to_features, normalize
+from ..audio.generators import AudioGenerator
+import ..models as models
 
 
 class LanguageAnalyzer:

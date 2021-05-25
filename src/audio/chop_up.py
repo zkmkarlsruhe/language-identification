@@ -12,7 +12,7 @@ import os
 import time
 
 import auditok
-from audio.utils import pad_with_data, pad_with_noise, pad_with_silence, to_array
+from .utils import pad_with_data, pad_with_noise, pad_with_silence, to_array
 
 
 def chop_up_audio (file_name, desired_length_s = 5,
