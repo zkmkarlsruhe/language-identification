@@ -6,7 +6,7 @@ set -e
 tarname=temp_$1.tar
 tempdir=temp_$1
 
-# download the tar and name it temp.tar
+# download the tar and name it temp_$LANG.tar
 curl -o $tarname -LO $2
 
 # untar the tar to temp_dataset_name

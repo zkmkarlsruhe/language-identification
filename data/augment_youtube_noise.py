@@ -63,14 +63,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--source', type=str,
-                        default="/home/paul/test_noise",
-                        # required=True,
+                        required=True,
                         help="directory to search for language folders")
-    parser.add_argument('--target_length_s', type=int, default=10,
+    parser.add_argument('--target_length_s', type=int, default=5,
                         help="length of the audio window to process in seconds")
 
     parser.add_argument('--wav_dir', type=str,
-                        default="/home/paul/test_noise_out",
+                        default="./test_noise_out",
                         help="directory to save processed wav files")
 
     parser.add_argument('--num_files', type=int, default=30000,

@@ -10,8 +10,8 @@ max_silence_s: 1
 energy_threshold: 60
 sample_rate: 16000
 sample_width: 2
-parallelize_moz: True 
-use_validated_set: True
+parallelize: True 
+use_validated_set: False
 remove_raw: True
 
 language_table:

@@ -16,7 +16,7 @@ import scipy.io.wavfile as wav
 
 import shutil
 from yaml import load
-from audio.chop_up import chop_up_audio
+from src.audio.chop_up import chop_up_audio
 
 def sentence_is_too_short(sentence_len, language):
     if language == "mandarin":
@@ -185,7 +185,7 @@ if __name__ == '__main__':
     parser.add_argument("--use_random_padding", type=bool, default=True,
                         help="whether to randomly use silence or data padding")
     # System
-    parser.add_argument("--parallelize_moz", type=bool, default=True,
+    parser.add_argument("--parallelize", type=bool, default=True,
                         help="whether to use multiprocessing")
     parser.add_argument("--remove_raw", type=bool, default=True,
                         help="whether to remove intermediate file")
@@ -208,7 +208,7 @@ if __name__ == '__main__':
             args.energy_threshold  = config["energy_threshold"] 
             args.sample_rate       = config["sample_rate"]
             args.sample_width      = config["sample_width"]
-            args.parallelize_moz   = config["parallelize_moz"]
+            args.parallelize       = config["parallelize"]
             args.remove_raw        = config["remove_raw"]
             args.use_validated_set = config["use_validated_set"]
             language_table         = config["language_table"]
@@ -260,14 +260,14 @@ if __name__ == '__main__':
                         args.max_silence_s, args.energy_threshold, args.use_validated_set)
 
         # process current language for all splits
-        if args.parallelize_moz:
+        if args.parallelize:
             threads.append(threading.Thread(target=traverse_csv, args=function_args,
                                             daemon=True) )
         else:
             traverse_csv(*function_args)
 
     # wait for threads to end
-    if args.parallelize_moz:
+    if args.parallelize:
         for t in threads:
             t.start()
         for t in threads:
