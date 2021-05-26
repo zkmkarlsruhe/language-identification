@@ -106,7 +106,7 @@ python data/augment_youtube_noise.py --source $NOISE_DIR
 Afterwards create another folder in the train, dev and test sub folders which include portions of the Youtube noise.
 
 ### Preprocessing
-In this version, we use `kapre` to extract the features (such as FFT or Mel-filterbanks) within the TensorFlow graph. This is especially useful in terms of portability, since we only need to pass the normalized audio to the model. Furthermore, the library allows to train the hyperparameters of the preprocessing method.
+In this version, we use [kapre](https://kapre.readthedocs.io/en/latest/) to extract the features (such as FFT or Mel-filterbanks) within the TensorFlow graph. This is especially useful in terms of portability, since we only need to pass the normalized audio to the model.
 
 If you rather do the preprocessing separately and before training, you may want to utilize the script `data/process_wav.py` and its config file, as well as its dependant source files. In the future, we may create another branch which tackles the problem this way (as we used to do it before using kapre).
 
@@ -126,18 +126,16 @@ python train.py --config config_train.yaml
 
 ## Todo
 - test scripts
-- README
 - results
+- training visualization
+- only-testing installation guide
 - parallelize youtube download
-- use a voice extractor 
-- license
-- model features
-- only testing installation
+- use a voice (instead of audio) activity detector  
 
 ## Further Reading
 * [Speech Features](https://haythamfayek.com/2016/04/21/speech-processing-for-machine-learning.html)
 * [CRNN-LID](https://github.com/HPI-DeepLearning/crnn-lid)
-* keyword-spotting
+* [keyword-spotting](https://github.com/douglas125/SpeechCmdRecognition)
 
 
 ## Contribute

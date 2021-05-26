@@ -7,7 +7,5 @@ scipy
 imageio
 python_speech_features
 nlpaug
-librosa
 pyyaml
-Flask
 kapre
