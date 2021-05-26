@@ -18,6 +18,25 @@ from tensorflow.keras.metrics import Precision, Recall, CategoricalAccuracy, Cat
 from tensorflow.keras.utils import Progbar
 
 
+from kapre.composed import get_stft_magnitude_layer
+from kapre.composed import get_melspectrogram_layer
+from kapre.composed import get_log_frequency_spectrogram_layer
+
+
+def get_feature_layer(feature_type, feature_nu, sample_rate):
+	if feature_type == 'stft':
+		m = get_stft_magnitude_layer(n_fft=feature_nu*2, name='stft_deb')
+	elif feature_type == 'mel':
+		m = get_melspectrogram_layer(n_mels=feature_nu, sample_rate=sample_rate, 
+									 name='mel_deb')
+	elif feature_type == 'fbank':
+		m = get_log_frequency_spectrogram_layer(log_n_bins=feature_nu, sample_rate=sample_rate, 
+									name='fbank_deb')
+	else:
+		print("create_model: Unknown feature type!")
+		return None
+	return m
+
 def write_csv(logging_dir, epoch, logs={}):
         with open(logging_dir, mode='a') as log_file:
             log_file_writer = csv.writer(log_file, delimiter=',')

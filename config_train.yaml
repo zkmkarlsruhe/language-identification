@@ -1,14 +1,18 @@
-
+# Dataset
 # languages: ["english","farsi","french","german","mandarin","spanish","polish","russian"]
-languages: ["english","german"]
+languages: ["english", "german"]
 train_dir: "test/data/"
 val_dir: "test/data/"
+augment: True
+
+# Audio
 audio_length_s: 5
 sample_rate: 16000
-feature_nu: 128
+feature_type: "stft"
+feature_nu: 256
 
+# Training
 batch_size: 2
 learning_rate: 0.001
 num_epochs: 20
-model: "attRnnSTFT"
-augment: True
+model: "eff"
