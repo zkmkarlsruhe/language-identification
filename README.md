@@ -1,35 +1,48 @@
-
-
 # Language Identification
-A playground to test and experiment with spoken languages identification. 
+A playground to test and experiment with spoken language identification. 
 
 This code base has been developed by Hertz-Lab as part of the project [»The Intelligent Museum«](#the-intelligent-museum). 
 Please raise issues, ask questions, throw in ideas or submit code as this repository is intended to be an open platform to collaboratively improve the task of spoken language identification (lid).
 
+Copyright (c) 2021 ZKM | Karlsruhe.
+BSD Simplified License.
+
 #### Target Platform:
 - Linux (tested with Ubuntu 18.04)
 - MacOS (tested with 10.15)
-- Windows (not tested)
+- Windows (not tested, should be easy to fix)
 
 
 
 ## Installation
-To train the neural network we recommend to use a GPU, although some networks may be small enough to be trained on a decent CPU.
+To train a neural network we generally recommend to use a GPU, although the network used in this repository may be small enough to be trained on a decent CPU.
 
-### Docker with GPU support
+### Docker 
+
+##### GPU support
 If you haven't installed docker with GPU support yet, please follow [these instructions](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
 
+##### Building the image
 Build the docker image using the [Dockerfile](Dockerfile). Make sure not to include any large file in the build process (all files in the build directory are taken into account).
 ```shell
 docker build -t lid .
 ```
 
-### Ubuntu
-Otherwise you can install the requirements locally. This process is similiar to the one in the Dockerfile.
+### Local Installation
+Otherwise you can install the requirements locally. This process is similar to the one in the Dockerfile.
 
 See <https://www.tensorflow.org/install/gpu> for more information on GPU support for TensorFlow.
 
-#### Dependencies
+#### System Requirements
+- ffmpeg
+- sox
+- portaudio
+- youtube-dl (version > 2020)
+- python
+- pip
+
+
+#### Ubuntu
 Feature extraction
 ``` shell
 sudo apt install ffmpeg sox libasound-dev portaudio19-dev
@@ -43,6 +56,9 @@ Python
 ``` shell
 sudo apt install python3 python3-pip 
 ```
+
+#### MacOs
+
 #### Python packages
 ```shell
 pip install -r requirements.txt
@@ -57,21 +73,26 @@ This repository extracts language examples from Mozilla's open speech corpus
 for noise data to enhance the robustness of the model. 
 However, most code should work for other data sets as well.
 
-#### Download
-Start by downloading language sets you are interested in. You can use our provided download script, but you have to generate and copy machine-sprcific download links into it, as the donwload requires your consent.
+### Download
+Start by downloading language sets you are interested in. We recommend to languages with at least 1000 speakers and 100 hours validated audio samples. Check [this site](https://commonvoice.mozilla.org/de/languages) for details.
+
+You can use our provided download script, but you have to generate and copy machine-specific download links into it, as the download requires your consent.
 
 ```shell
 ./data/download_common_voice.sh
 ```
 Afterwards collect the data sets in a folder, referred to as `$DATA_DIR`.
 
-Start downloading the youtube noise dataset. This process is yet not prallelized and may require a day to complete. Download the __unbalanced__ data set from the [website](https://research.google.com/audioset/download.html).
+Start downloading the Youtube noise dataset. This process is yet not parallelized and may require a day to complete. Download the __unbalanced__ data set from the [website](https://research.google.com/audioset/download.html) and pass it to the script.
 ```shell
 python download_youtube_noise.py --input_file unbalanced_train_segments.csv --output_dir $NOISE_DIR
 ```
 
-#### Creation
-We use several processing steps to form our data set from the Common Voice downloads. We recommend using the config file to define and document the processing steps. Please take a look at the CLI tool for more information on the options.
+### Audio Extraction
+We use several processing steps to form our data set from the Common Voice downloads. We recommend using the config file to define and document the processing steps. Please take a look at the CLI arguments in the script for more information on the options.
+```shell
+python data/mozilla_to_wav.py --help
+```
 Modify the config file accordingly, e.g. replace `cv_dir` with $DATA_DIR and name the languages in the table at the bottom.
 ```shell
 python data/mozilla_to_wav.py --config data/config_moz.yaml
@@ -82,43 +103,47 @@ If you don't have enough noise data then you may want to randomly scramble the n
 python data/augment_youtube_noise.py --source $NOISE_DIR
 ```
 
-Afterwards create another folder in the train, dev and test folders which includes portions of the youtube noise.
+Afterwards create another folder in the train, dev and test sub folders which include portions of the Youtube noise.
 
+### Preprocessing
+In this version, we use `kapre` to extract the features (such as FFT or Mel-filterbanks) within the TensorFlow graph. This is especially useful in terms of portability, since we only need to pass the normalized audio to the model. Furthermore, the library allows to train the hyperparameters of the preprocessing method.
 
+If you rather do the preprocessing separately and before training, you may want to utilize the script `data/process_wav.py` and its config file, as well as its dependant source files. In the future, we may create another branch which tackles the problem this way (as we used to do it before using kapre).
 
 ## Training
+As with the creation of the dataset we use config files to define and document the process. The options we provide should sound familiar. Most importantly, modify the placeholder for the train and validation directories, as well as the languages to be detected (noise is treated as another language).
 
 ### Docker 
 Run a container of the newly build image
 ```shell
 docker run -it --rm -v $(pwd):/work/src -v $(pwd)/../data:/data lid python train.py --config config_train.yaml
 ```
-### local installation
+
+### Local installation
 ```
 python train.py --config config_train.yaml
 ```
 
 ## Todo
 - test scripts
-- document docker
 - README
 - results
 - parallelize youtube download
 - use a voice extractor 
 - license
+- model features
+- only testing installation
 
 ## Further Reading
 * [Speech Features](https://haythamfayek.com/2016/04/21/speech-processing-for-machine-learning.html)
 * [CRNN-LID](https://github.com/HPI-DeepLearning/crnn-lid)
-
-
-## License
-GPLv3 see `LICENSE` for more information.
+* keyword-spotting
 
 
 ## Contribute
-Contributions are very welcome!
-Please send an email to bethge@zkm.de
+Contributions are very welcome.
+Create an account, clone or fork the repo, then request a push/merge.
+If you find any bugs or suggestions please raise issues.
 
 ## The Intelligent Museum
 An artistic-curatorial field of experimentation for deep learning and visitor participation
