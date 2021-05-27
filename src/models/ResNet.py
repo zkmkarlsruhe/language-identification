@@ -8,7 +8,7 @@ This package is published under Simplified BSD License.
 """
 
 
-from tensorflow.keras.layers import GlobalAveragePooling2D, Dropout, LayerNormalization
+from tensorflow.keras.layers import GlobalAveragePooling2D, Dropout, BatchNormalization
 from tensorflow.keras.layers import Dense, Permute, Input
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.applications import ResNet50
@@ -31,8 +31,7 @@ def create_model(config):
 	model = Sequential()
 	model.add(inputs)
 	model.add(feature_extractor)
-	model.add(LayerNormalization())
-	model.add(Permute((2, 1, 3)))
+	model.add(BatchNormalization())
 	model.add(res_net)
 	model.add(GlobalAveragePooling2D())
 	model.add(Dropout(0.5))
