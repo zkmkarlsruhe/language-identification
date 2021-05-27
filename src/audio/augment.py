@@ -44,7 +44,7 @@ class AudioAugmenter(object):
 		"""
 		augmented_data = self._aug_flow.augment(signal, num_thread=8)
 
-		# TODO write a custom audio augementer for padding
+		# TODO write a custom audio augmenter for padding
 		data = []
 		for x in augmented_data:
 			x = pad_with_silence(x, self.target_length_s * self.fs)

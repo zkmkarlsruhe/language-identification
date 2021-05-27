@@ -37,6 +37,7 @@ def get_feature_layer(feature_type, feature_nu, sample_rate):
 		return None
 	return m
 
+
 def write_csv(logging_dir, epoch, logs={}):
 		with open(logging_dir, mode='a') as log_file:
 			log_file_writer = csv.writer(log_file, delimiter=',')
@@ -119,32 +120,6 @@ def run_epoch(model, batch_generator_obj, training=False, optimizer=None, show_p
 			pb.add(1, values=values)
 
 	return accuracy, loss, recall, precision
-
-
-### old
-
-# Custom Callbacks
-class CustomCSVCallback(Callback):
-
-	def __init__(self, logging_dir):
-		self._logging_dir = logging_dir
-		self._counter = 0
-
-	def on_epoch_end(self, epoch, logs={}):
-		with open(self._logging_dir, mode='a') as log_file:
-			log_file_writer = csv.writer(log_file, delimiter=',')
-			if self._counter == 0:
-				row = list(logs.keys())
-				row.insert(0, "epoch")
-				row.append("learning_rate")
-				log_file_writer.writerow(row)
-			row_vals = [round(x, 6) for x in list(logs.values())]
-			row_vals.insert(0, self._counter)
-			row_vals.append(round(float(
-				get_value(self.model.optimizer.learning_rate)), 6))
-			log_file_writer.writerow(row_vals)
-		self._counter += 1
-
 
 
 def visualize_results(history, config):

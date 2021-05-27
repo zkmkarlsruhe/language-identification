@@ -160,8 +160,7 @@ class LIDGenerator(object):
 
 class AugBatchGenerator():
 
-	def __init__(self, source, target_length_s, languages=[], batch_size=32,
-				augmenter=None):
+	def __init__(self, source, target_length_s, languages=[], batch_size=32, augmenter=None):
 		"""
 		A wrapper class around LidGenerator for generating batches.
 		Batches can be augmented if necessary.
@@ -191,27 +190,29 @@ class AugBatchGenerator():
 		x_batch = []
 		y_batch = []
 		i=0
+
+		def process_batch(x_batch, y_batch):
+			if self.augmenter:
+				x_batch = self.augmenter.augment_audio_array(x_batch)
+			x_batch = [normalize(item) for item in x_batch]
+			return np.asarray(x_batch), np.asarray(y_batch)
+
 		while True:
+
 			try:
 				x,y = next(self.generator)
 				x_batch.append(x)
 				y_batch.append(y)
 				i += 1
 				if i == self.batch_size:
-					if self.augmenter:
-						x_batch = self.augmenter.augment_audio_array(x_batch)
-					# TODO speed up normalization
-					for i in range(len(x_batch)):
-						x_batch[i] = normalize(x_batch[i])
-					x_arr = np.asarray(x_batch)
-					y_arr = np.asarray(y_batch)
-					yield x_arr, y_arr
+					yield process_batch(x_batch, y_batch)
 					i = 0
 					x_batch = []
 					y_batch = []
+
 			except StopIteration as e:
 					if len(x_batch) > 0:
-						yield x_batch, y_batch
+						yield process_batch(x_batch, y_batch)
 					self.reset()
 					break
 
