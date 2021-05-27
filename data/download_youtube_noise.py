@@ -187,3 +187,6 @@ if __name__ == '__main__':
 
 		except EOFError as e:
 			print("End of file!")
+	
+	# wait until the workers are ready
+	queue.join()
