@@ -126,7 +126,6 @@ python train.py --config config_train.yaml
 
 
 ## Todo
-- test scripts
 - results
 - training visualization
 - speed-up data loader with custom augmenter

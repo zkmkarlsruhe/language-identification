@@ -146,9 +146,6 @@ class CustomCSVCallback(Callback):
 		self._counter += 1
 
 
-def visualize_results(history, config):
-	epochs = config["num_epochs"]
-
 
 def visualize_results(history, config):
 	epochs = config["num_epochs"]
