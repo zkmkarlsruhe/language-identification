@@ -14,10 +14,10 @@ from Queue import Queue
 
 
 def downloadEnclosures(i, q):
-    while True:
-        yt_url, start_s, length_s, output_dir = q.get()
-        download(yt_url, start_s, length_s, output_dir)
-        q.task_done()
+	while True:
+		yt_url, start_s, length_s, output_dir = q.get()
+		download(yt_url, start_s, length_s, output_dir)
+		q.task_done()
 
 
 def download(yt_url, start_s, length_s, output_dir):
