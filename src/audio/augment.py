@@ -27,7 +27,7 @@ class AudioAugmenter(object):
 		self._aug_flow = flow.Sequential([
 			shift,
 			crop,
-			vltp,
+			# vltp,
 			# speed,
 			# pitch,
 			noise,
