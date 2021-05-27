@@ -1,3 +1,12 @@
+"""
+:author:
+Paul Bethge (bethge@zkm.de)
+2021
+
+:License:
+This package is published under Simplified BSD License.
+"""
+
 import os
 import shutil
 import argparse

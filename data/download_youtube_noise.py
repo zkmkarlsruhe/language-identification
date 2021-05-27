@@ -1,4 +1,13 @@
 """
+:author:
+Paul Bethge (bethge@zkm.de)
+2021
+
+:License:
+This package is published under Simplified BSD License.
+"""
+
+"""
 A small script for downloading audio files from the "audioset" dataset using youtube-dl and ffmpeg
 The list of files is passed as unbalanced_train_segments.csv
 Unfortunately, the balanced_train_segments.csv has a slightly different style

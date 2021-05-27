@@ -65,7 +65,6 @@ pip install -r requirements.txt
 ```
 
 
-
 ## Dataset
 This repository extracts language examples from Mozilla's open speech corpus 
 [Common Voice](https://commonvoice.mozilla.org/) and Google's audio scene dataset 
@@ -83,7 +82,7 @@ You can use our provided download script, but you have to generate and copy mach
 ```
 Afterwards collect the data sets in a folder, referred to as `$DATA_DIR`.
 
-Start downloading the Youtube noise dataset. This process is yet not parallelized and may require a day to complete. Download the __unbalanced__ data set from the [website](https://research.google.com/audioset/download.html) and pass it to the script.
+Start downloading the Youtube noise dataset. This process parallelized so make sure to use enough threads. Download the __unbalanced__ data set from the [website](https://research.google.com/audioset/download.html) and pass it to the script.
 ```shell
 python download_youtube_noise.py --input_file unbalanced_train_segments.csv --output_dir $NOISE_DIR
 ```
@@ -110,6 +109,7 @@ In this version, we use [kapre](https://kapre.readthedocs.io/en/latest/) to extr
 
 If you rather do the preprocessing separately and before training, you may want to utilize the script `data/process_wav.py` and its config file, as well as its dependant source files. In the future, we may create another branch which tackles the problem this way (as we used to do it before using kapre).
 
+
 ## Training
 As with the creation of the dataset we use config files to define and document the process. The options we provide should sound familiar. Most importantly, modify the placeholder for the train and validation directories, as well as the languages to be detected (noise is treated as another language).
 
@@ -124,13 +124,15 @@ docker run -it --rm -v $(pwd):/work/src -v $(pwd)/../data:/data lid python train
 python train.py --config config_train.yaml
 ```
 
+
 ## Todo
 - test scripts
 - results
 - training visualization
+- speed-up data loader with custom augmenter
 - only-testing installation guide
-- parallelize youtube download
 - use a voice (instead of audio) activity detector  
+
 
 ## Further Reading
 * [Speech Features](https://haythamfayek.com/2016/04/21/speech-processing-for-machine-learning.html)
@@ -142,6 +144,7 @@ python train.py --config config_train.yaml
 Contributions are very welcome.
 Create an account, clone or fork the repo, then request a push/merge.
 If you find any bugs or suggestions please raise issues.
+
 
 ## The Intelligent Museum
 An artistic-curatorial field of experimentation for deep learning and visitor participation

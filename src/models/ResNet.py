@@ -1,3 +1,13 @@
+"""
+:author:
+Paul Bethge (bethge@zkm.de)
+2021
+
+:License:
+This package is published under Simplified BSD License.
+"""
+
+
 from tensorflow.keras.layers import GlobalAveragePooling2D, Dropout, LayerNormalization
 from tensorflow.keras.layers import Dense, Permute, Input
 from tensorflow.keras.models import Sequential
