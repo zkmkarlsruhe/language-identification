@@ -33,10 +33,9 @@ def create_model(config):
 	inputs = Input((input_length, 1), name='input')
 
 	x = feature_extractor(inputs)
-	x = LayerNormalization()(x)
-
-	x = Permute((2, 1, 3))(x)
-
+	feature_extractor.trainable = False
+	x = BatchNormalization()(x)
+	
 	x = Conv2D(10, (5, 1), activation='relu', padding='same')(x)
 	x = BatchNormalization()(x)
 	x = Conv2D(1, (5, 1), activation='relu', padding='same')(x)
@@ -44,11 +43,11 @@ def create_model(config):
 
 	x = Lambda(lambda q: K.squeeze(q, -1), name='squeeze_last_dim')(x)
 
-	x = Bidirectional(LSTM(128, return_sequences=True))(x)  # [b_s, seq_len, vec_dim]
-	x = Bidirectional(LSTM(128, return_sequences=True))(x)  # [b_s, seq_len, vec_dim]
+	x = Bidirectional(LSTM(64, return_sequences=True))(x)  # [b_s, seq_len, vec_dim]
+	x = Bidirectional(LSTM(64, return_sequences=True))(x)  # [b_s, seq_len, vec_dim]
 
 	xFirst = Lambda(lambda q: q[:, -1])(x)  # [b_s, vec_dim]
-	query = Dense(256)(xFirst)
+	query = Dense(128)(xFirst)
 
 	# dot product attention
 	attScores = Dot(axes=[1, 2])([query, x])
@@ -57,9 +56,9 @@ def create_model(config):
 	# rescale sequence
 	attVector = Dot(axes=[1, 1])([attScores, x])  # [b_s, vec_dim]
 
-	x = Dense(256, activation='relu')(attVector)	
+	x = Dense(64, activation='relu')(attVector)	
 	x = Dropout(0.25)(x)
-	x = Dense(64)(x)
+	x = Dense(32)(x)
 	x = Dropout(0.25)(x)
 
 

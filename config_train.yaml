@@ -1,21 +1,22 @@
 # Dataset
 # languages: ["english","farsi","french","german","mandarin","spanish","polish","russian"]
-languages: ["english", "german"]
-train_dir: "test/data/"
-val_dir: "test/data/"
+languages: ["english","french","german","spanish","__noise"]
+train_dir: "/data/common_voice_filtered/fiveSec/wav/train"
+val_dir: "/data/common_voice_filtered/fiveSec/wav/test"
 augment: True
 
 # Audio
 audio_length_s: 5
 sample_rate: 16000
 feature_type: "stft"    # one of: mel, stft, fbank
-feature_nu: 256
+feature_nu: 1024
 
 # Training
-batch_size: 32
+batch_size: 64 
 learning_rate: 0.001
 num_epochs: 20
-model: "eff"            # name the file in src/models
+#model: "AttRnn"            # name the file in src/models
+model: "ResNet"            # name the file in src/models
 
 # Other
 show_progress: True
