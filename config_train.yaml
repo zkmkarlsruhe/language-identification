@@ -8,11 +8,14 @@ augment: True
 # Audio
 audio_length_s: 5
 sample_rate: 16000
-feature_type: "stft"
+feature_type: "stft"    # one of: mel, stft, fbank
 feature_nu: 256
 
 # Training
-batch_size: 2
+batch_size: 32
 learning_rate: 0.001
 num_epochs: 20
-model: "eff"
+model: "eff"            # name the file in src/models
+
+# Other
+show_progress: True

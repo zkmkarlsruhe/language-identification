@@ -7,10 +7,14 @@ Paul Bethge (bethge@zkm.de)
 This package is published under Simplified BSD License.
 """
 
+"""
+This script extracts and converts audio samples from Common Voice.
+"""
+
 import os
 import pydub
 import argparse
-import threading
+from threading import Thread
 import numpy as np
 import scipy.io.wavfile as wav
 
@@ -30,7 +34,7 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
 				allowed_downvotes, remove_raw, min_length_s, max_silence_s,
 				energy_threshold, use_validated_set):
 	"""
-	travers the language specific file, extract and save important samples.
+	traverses the language specific file, extract and save important samples.
 	"""
 	
 	lang = language["lang"]
@@ -134,7 +138,8 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
 
 						if done:
 							# when using the validated.tsv we have to make sure the same
-							# speakers wont appear in more than one set. Fast-forward...
+							# speakers wont appear in more than one set. Luckely, they
+							# are in ordered by speaker hash id.
 							if use_validated_set:
 								last_speaker = speaker = line[0]
 								while speaker == last_speaker:
@@ -165,12 +170,12 @@ if __name__ == '__main__':
 	# Data 
 	parser.add_argument("--max_chops", type=int, nargs=3, default=[-1, -1, -1],
 						help="amount of maximum wav chops to be produced per split. -1 means all.")
-	parser.add_argument("--use_validated_set", type=bool, nargs=3, default=False,
+	parser.add_argument("--use_validated_set", type=bool, default=False,
 						help="whether to use the train, test and dev sets or all validated data")
 	parser.add_argument("--allowed_downvotes", type=int, default=0,
 						help="amount of downvotes allowed")
 	# Audio file properties
-	parser.add_argument("--audio_length_s", type=int, default=10,
+	parser.add_argument("--audio_length_s", type=int, default=5,
 						help="length of wav files being produced")
 	parser.add_argument("--min_length_s", type=float, default=2.5,
 						help="min length of an audio event")
@@ -182,8 +187,6 @@ if __name__ == '__main__':
 						help="sample rate of files being produced")
 	parser.add_argument('--sample_width', type=int, default=2, choices=(1, 2, 4),
 						help='number of bytes per sample')
-	parser.add_argument("--use_random_padding", type=bool, default=True,
-						help="whether to randomly use silence or data padding")
 	# System
 	parser.add_argument("--parallelize", type=bool, default=True,
 						help="whether to use multiprocessing")
@@ -239,19 +242,17 @@ if __name__ == '__main__':
 		]
 
 	# count the number of unknown languages
-	# unknown = 0
-	# for language in languages:
-	#     if language["lang"] == "unknown":
-	#         unknown += 1
-	# if unknown > 0:
-	#     number_unknown = args.number // unknown
+	unknown = 0
+	for language in language_table:
+	    if language["lang"] == "unknown":
+	        unknown += 1
 
 	threads = []
 	for language in language_table:
 
-		# clips_per_language = args.max_chops
-		# if language["lang"] == "unknown":
-		#     clips_per_language = number_unknown
+		max_chops = args.max_chops
+		if language["lang"] == "unknown":
+		    max_chops /= unknown
 
 		# prepare arguments
 		function_args = (language, args.cv_dir, args.cv_filtered_dir, args.max_chops, 
@@ -261,8 +262,7 @@ if __name__ == '__main__':
 
 		# process current language for all splits
 		if args.parallelize:
-			threads.append(threading.Thread(target=traverse_csv, args=function_args,
-											daemon=True) )
+			threads.append(Thread(target=traverse_csv, args=function_args,daemon=True))
 		else:
 			traverse_csv(*function_args)
 

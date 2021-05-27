@@ -10,11 +10,9 @@ This package is published under Simplified BSD License.
 import os
 import shutil
 import argparse
-import time
 from datetime import datetime
 from yaml import load
 
-import numpy as np
 import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import load_model
@@ -42,6 +40,7 @@ def train(config_path, log_dir, model_path):
 	fs = config["sample_rate"]
 	audio_length_s = config["audio_length_s"]
 	augment = config["augment"]
+	show_progress = config["show_progress"]
 
 	# create or load the model
 	if model_path:
@@ -66,9 +65,9 @@ def train(config_path, log_dir, model_path):
 									languages=languages, batch_size=batch_size)
 
 	# progress bar information
-	show_progress = True
-	train_num_batches = train_gen_obj.count_batches()
-	val_num_batches = val_gen_obj.count_batches()
+	if show_progress:
+		train_num_batches = train_gen_obj.count_batches()
+		val_num_batches = val_gen_obj.count_batches()
 
 	# Training loop
 	best_val_acc = 0.0
@@ -107,8 +106,8 @@ def train(config_path, log_dir, model_path):
 if __name__ == "__main__": 
 	tf.config.list_physical_devices('GPU')
 	parser = argparse.ArgumentParser()
-	parser.add_argument('--model_path', default=None)
-	parser.add_argument('--config', default="config.yaml")
+	parser.add_argument('--config', default="config_train.yaml")
+	parser.add_argument('--model_path', default=None, help="Path to a trained model for retraining")
 	cli_args = parser.parse_args()
 
 	log_dir = os.path.join("logs", datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
