@@ -22,8 +22,8 @@ Please take the following point into account when using our code.
 
 
 ## Trained Models
-Our trained models can be downloaded from [this location](https://cloud.zkm.de/index.php/s/83LwnXT9xDsyxGf). The `AttRnn` model expects 5s of normalized audio sampled at 16kHz and outputs probabilities for Noise, English, French, German and Spanish in this order.
-We hope to soon open up a demo page or a test script for you to run locally or at Colab.
+Our trained models can be downloaded from [this location](https://cloud.zkm.de/index.php/s/83LwnXT9xDsyxGf). The `AttRnn` model expects 5 seconds of normalized audio sampled at 16kHz and outputs probabilities for Noise, English, French, German and Spanish in this order.
+We hope to soon open up a demo page or a test script for you to run locally or at Google Colaboratory.
 
 ## Installation
 To train a neural network we generally recommend to use a GPU.
@@ -116,7 +116,7 @@ As with the creation of the dataset we use config files to define and document t
 ### Docker 
 The following line runs the training process inside a docker container of the newly build image. The command will grant access to the folder holding the train and test set.
 ```shell
-docker run -it --rm -v $(pwd):/work/src -v $DATA_LOCATION:/data lid python train.py --config config_train.yaml
+docker run -it --rm -v $(pwd):/work/src -v $DATA_DIR:/data lid python train.py --config config_train.yaml
 ```
 
 ### Local installation
