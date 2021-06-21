@@ -163,9 +163,9 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--config_path', default=None,
 						help="path to the config yaml file. When given, arguments will be ignored")
-	parser.add_argument("--cv_dir", type=str, default=None,
+	parser.add_argument("--cv_input_dir", type=str, default=None,
 						help="directory containing all languages")
-	parser.add_argument("--cv_filtered_dir", type=str, default="../res",
+	parser.add_argument("--cv_output_dir", type=str, default="../res",
 						help="directory to receive converted clips of all languages")
 	# Data 
 	parser.add_argument("--max_chops", type=int, nargs=3, default=[-1, -1, -1],
@@ -201,8 +201,8 @@ if __name__ == '__main__':
 				print("Could not find config file")
 				exit(-1)
 		else:
-			args.cv_dir            = config["cv_dir"]
-			args.cv_filtered_dir   = config["cv_filtered_dir"]
+			args.cv_input_dir      = config["cv_input_dir"]
+			args.cv_output_dir     = config["cv_output_dir"]
 			args.max_chops         = config["max_chops"]
 			args.allowed_downvotes = config["allowed_downvotes"]
 			args.audio_length_s    = config["audio_length_s"] 
@@ -217,9 +217,9 @@ if __name__ == '__main__':
 			language_table         = config["language_table"]
 
 			# copy config to output dir
-			if not os.path.exists(args.cv_filtered_dir):
-				os.makedirs(args.cv_filtered_dir)
-			shutil.copy(args.config_path, args.cv_filtered_dir)
+			if not os.path.exists(args.cv_output_dir):
+				os.makedirs(args.cv_output_dir)
+			shutil.copy(args.config_path, args.cv_output_dir)
 
 	else:
 		language_table = [
@@ -255,7 +255,7 @@ if __name__ == '__main__':
 		    max_chops /= unknown
 
 		# prepare arguments
-		function_args = (language, args.cv_dir, args.cv_filtered_dir, args.max_chops, 
+		function_args = (language, args.cv_input_dir, args.cv_output_dir, args.max_chops, 
 						args.audio_length_s, args.sample_rate, args.sample_width, 
 						args.allowed_downvotes, args.remove_raw, args.min_length_s,
 						args.max_silence_s, args.energy_threshold, args.use_validated_set)
@@ -274,4 +274,4 @@ if __name__ == '__main__':
 			t.join()
 
 	if args.remove_raw:
-		shutil.rmtree(os.path.join(args.cv_filtered_dir, "raw"))
+		shutil.rmtree(os.path.join(args.cv_output_dir, "raw"))
