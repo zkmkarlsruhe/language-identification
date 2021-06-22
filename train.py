@@ -98,7 +98,7 @@ def train(config_path, log_dir, model_path):
 		if val_acc > best_val_acc:
 			best_val_acc = val_acc
 			model_name = os.path.join(log_dir, 'model' + "_" + str(epoch))
-			model_predict = get_saved_model_function(model, dims=(1, audio_length_s*fs,1))
+			model_predict = get_saved_model_function(model)
 			model.save(model_name, signatures={'serving_default': model_predict})
 		
 

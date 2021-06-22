@@ -48,7 +48,7 @@ def write_csv(logging_dir, epoch, logs={}):
 			log_file_writer.writerow(row_vals)
 
 
-def get_saved_model_function(model, dims=(1, 80000, 1)):
+def get_saved_model_function(model, dims=(None, None, 1)):
 	@tf.function(input_signature=[tf.TensorSpec(dims, dtype=tf.float32)])
 	def model_predict(input_1):
 		return {'outputs': model(input_1, training=False)}
