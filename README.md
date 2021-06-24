@@ -1,4 +1,4 @@
-# Language Identification
+# Spoken Language Identification
 A playground to test and experiment with spoken language identification. 
 
 This code base has been developed by Hertz-Lab as part of the project [»The Intelligent Museum«](#the-intelligent-museum). 
@@ -23,10 +23,14 @@ Please take the following point into account when using our code.
 
 ## Trained Models
 Our trained models can be downloaded from [this location](https://cloud.zkm.de/index.php/s/83LwnXT9xDsyxGf). The `AttRnn` model expects 5 seconds of normalized audio sampled at 16kHz and outputs probabilities for Noise, English, French, German and Spanish in this order.
-We hope to soon open up a demo page or a test script for you to run locally or at Google Colaboratory.
 
-## Installation
-To train a neural network we generally recommend to use a GPU.
+## Demonstration
+If you are only interested in running the trained model then please check out our notebook in the `demo/` folder. The notebook was developed to be [run in Google Colab](https://colab.research.google.com/github/zkmkarlsruhe/language-identification/blob/main/demo/LID_demo.ipynb). It will guide you through the necessary steps to run the model in your application.
+
+You can also check out our [OpenFrameworks demonstration](https://git.zkm.de/Hertz-Lab/Research/intelligent-museum/LanguageIdentifier) which utilizes our [ofxTensorFlow2](https://github.com/zkmkarlsruhe/ofxTensorFlow2) addon.
+
+## Training Setup
+We highly recommend to use a (recent) GPU to train a neural network.
 
 ### Docker 
 
@@ -34,7 +38,7 @@ To train a neural network we generally recommend to use a GPU.
 If you haven't installed docker with GPU support yet, please follow [these instructions](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
 
 ##### Building the image
-Build the docker image using the [Dockerfile](Dockerfile). Make sure not to include large amounts of data in the build process (all files in the build directory are taken into account).
+Build the docker image using the [Dockerfile](Dockerfile). Make sure not to include large amounts of data into the build process (all files in the build directory are taken into account).
 ```shell
 docker build -t lid .
 ```
@@ -126,7 +130,6 @@ python train.py --config config_train.yaml
 
 ## TODO
 - evaluate the fairness of the model
-- test environment and guide
 - use a voice (instead of audio) activity detector  
 - rework data loading process (e.g. use TFDataset)
 - more automation in the data set creation steps
