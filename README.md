@@ -139,6 +139,8 @@ python train.py --config config_train.yaml
 * Types of [Speech Features](https://haythamfayek.com/2016/04/21/speech-processing-for-machine-learning.html)
 * We used [CRNN-LID](https://github.com/HPI-DeepLearning/crnn-lid) when we first started
 * We ported the network from [this keyword-spotting code](https://github.com/douglas125/SpeechCmdRecognition)
+* [VoxLingua107](http://bark.phon.ioc.ee/voxlingua107/) another multi-lingual dataset
+* [Silero-VAD](https://github.com/snakers4/silero-vad) a free Voice Activity Detector and Language Identifier (en, es, de, ru)
 
 
 ## Contribute
