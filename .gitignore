@@ -2,7 +2,7 @@ trained_models/
 
 logs/
 
-test/data
+test_data/
 
 # Python
 __pycache__

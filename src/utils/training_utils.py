@@ -23,6 +23,31 @@ from kapre.composed import get_melspectrogram_layer
 from kapre.composed import get_log_frequency_spectrogram_layer
 
 
+import pathlib
+import os
+
+
+def create_dataset_from_set_of_files(ds_dir, languages):
+	
+	# assure languages are sorted alphanumerically
+	languages = sorted(languages)
+
+	# create a file path dataset from all directories specified
+	glob_list = [os.path.join(ds_dir, lang,'*.wav') for lang in languages]
+	list_ds = tf.data.Dataset.list_files(glob_list)
+
+	# create a dataset yielding audio and categorical label
+	def process_path(file_path):
+		x = tf.io.read_file(file_path)
+		# get label and convert to categorical 
+		label = tf.strings.split(file_path, os.sep)[-2]
+		y = tf.cast(tf.equal(label, languages), tf.float32)
+		return x, y
+	labeled_ds = list_ds.map(process_path)
+
+	return labeled_ds
+
+
 def get_feature_layer(feature_type, feature_nu, sample_rate):
 	if feature_type == 'stft':
 		m = get_stft_magnitude_layer(n_fft=feature_nu*2, name='stft_deb')
