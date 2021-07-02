@@ -22,10 +22,7 @@ from kapre.composed import get_stft_magnitude_layer
 from kapre.composed import get_melspectrogram_layer
 from kapre.composed import get_log_frequency_spectrogram_layer
 
-
-import pathlib
 import os
-
 
 def create_dataset_from_set_of_files(ds_dir, languages):
 	
@@ -62,7 +59,6 @@ def get_feature_layer(feature_type, feature_nu, sample_rate):
 		return None
 	return m
 
-
 def write_csv(logging_dir, epoch, logs={}):
 		with open(logging_dir, mode='a') as log_file:
 			log_file_writer = csv.writer(log_file, delimiter=',')
@@ -71,6 +67,14 @@ def write_csv(logging_dir, epoch, logs={}):
 				log_file_writer.writerow(row)
 			row_vals = [round(x, 6) for x in list(logs.values())]
 			log_file_writer.writerow(row_vals)
+
+
+class CustomCSVCallback(Callback):
+	def __init__(self, logging_dir):
+		self._logging_dir = logging_dir
+		self._counter = 0
+	def on_epoch_end(self, epoch, logs={}):
+		write_csv(self.logging_dir, epoch, logs)
 
 
 def get_saved_model_function(model, dims=(None, None, 1)):
