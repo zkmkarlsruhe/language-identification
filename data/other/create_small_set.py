@@ -7,9 +7,8 @@ Paul Bethge (bethge@zkm.de)
 This package is published under Simplified BSD License.
 """
 
-
 import os
-from shutil import copyfile
+from shutil import copyfile, move
 import argparse
 
 
@@ -32,7 +31,7 @@ def create_small_dataset(path, new_path, dataset_size):
 			subdir_list = os.listdir(subdir_path)
 			count = 0
 			for file in subdir_list:
-				if count < dataset_size:
+				if dataset_size != -1 or count < dataset_size:
 					file_path = os.path.join(subdir_path, file)
 					new_file_path = os.path.join(new_subdir_path, file)
 					copyfile(file_path, new_file_path)
@@ -40,6 +39,8 @@ def create_small_dataset(path, new_path, dataset_size):
 				else:
 					break
 				count = count + 1
+	
+	print("copyied or moved" + str(count) + "files")
 
 
 if __name__ == "__main__":
@@ -47,6 +48,6 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--source', required=True)
 	parser.add_argument('--target', required=True)
-	parser.add_argument('--size', type=int, default=10)
+	parser.add_argument('--size', type=int, default=10, help="put -1 for all")
 	cli_args = parser.parse_args()
 	create_small_dataset(cli_args.source, cli_args.target, cli_args.size)
