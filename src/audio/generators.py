@@ -70,7 +70,7 @@ class AudioGenerator(object):
 				fs, audio = wav.read(file)
 				file_name = file.split('/')[-1]
 				target_length = self.target_length_s * fs
-				num_segments = int(len(audio) // target_length)
+				num_segments = int(np.ceil(len(audio) / target_length))
 
 				# for all segments create slices of target length
 				for i in range(0, num_segments):
@@ -79,7 +79,7 @@ class AudioGenerator(object):
 					rest = len(audio) - slice_start
 					# if we have only one segment left and there is at least
 					#  minimum_length data pad it with silence
-					if i == num_segments:
+					if i == num_segments-1:
 						if rest >= target_length * self.minimum_length:
 							chunk = pad_with_silence(audio[slice_start:], target_length)
 						else:
