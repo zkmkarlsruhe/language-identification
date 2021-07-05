@@ -12,7 +12,7 @@ from shutil import copyfile, move
 import argparse
 
 
-def create_small_dataset(path, new_path, dataset_size):
+def create_small_dataset(path, new_path, dataset_size, move_it=True):
 
 	parent_list = os.listdir(path)
 	for child in parent_list:
@@ -34,20 +34,25 @@ def create_small_dataset(path, new_path, dataset_size):
 				if dataset_size != -1 or count < dataset_size:
 					file_path = os.path.join(subdir_path, file)
 					new_file_path = os.path.join(new_subdir_path, file)
-					copyfile(file_path, new_file_path)
-					# print(file_path, new_file_path)
+					if move_it:
+						move(file_path, new_file_path)
+					else:
+						copyfile(file_path, new_file_path)
 				else:
 					break
 				count = count + 1
-	
-	print("copyied or moved" + str(count) + "files")
+	if move_it:
+		print("moved " + str(count) + " files")
+	else:
+		print("copyied " + str(count) + " files")
 
 
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser()
-	parser.add_argument('--source', required=True)
-	parser.add_argument('--target', required=True)
+	parser.add_argument('--source', required=True, help="input directory")
+	parser.add_argument('--target', required=True, help="output directory")
 	parser.add_argument('--size', type=int, default=10, help="put -1 for all")
+	parser.add_argument('--move', type=bool, default=True, help="whether to move or just copy")
 	cli_args = parser.parse_args()
-	create_small_dataset(cli_args.source, cli_args.target, cli_args.size)
+	create_small_dataset(cli_args.source, cli_args.target, cli_args.size, cli_args.move)
