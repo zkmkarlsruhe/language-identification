@@ -83,30 +83,39 @@ This repository extracts language examples from Mozilla's open speech corpus
 [AudioSet](https://research.google.com/audioset/dataset/index.html). 
 
 ### Download
+##### Common Voice
 Start by downloading language sets you are interested in. We recommend to use languages with at least 1000 speakers and 100 hours validated audio samples. Check [this site](https://commonvoice.mozilla.org/de/languages) for details.
 
-You can use our provided download script, but you have to generate and copy machine-specific download links into it, as the download requires your consent.
+__Note:__ In order to use our provided download script, you have to generate and copy machine-specific download links into it, as the download requires your consent.
 
 ```shell
-./data/download_common_voice.sh
+./data/common-voice/download_common_voice.sh
 ```
-Afterwards, collect the data sets in a folder, referred to as `$DATA_DIR`.
 
-Start downloading the YouTube noise. The following script defines the labels that are relevant and those that are not allowed (human voice). With the restrictions for our use case we extracted around 18,000 samples from AudioSet. The process is parallelized, but will still require a couple of hours. First, download the __unbalanced__ data set from the [website](https://research.google.com/audioset/download.html) and pass it to the script.
+In the end, you need a folder, referred to as `$CV_DL_DIR`, which contains subfolders for every language that you want to classify.
+
+##### AudioSet
+In this section we will first download the AudioSet meta data file from [this website](https://research.google.com/audioset/download.html). Next, we will search it for specific labels using the provided `data/audioset/download_youtube_noise.py` script. This python script defines the labels that are relevant and those that are not allowed (human voice). With the restrictions for our use case we extracted around 18,000 samples from AudioSet. You can call the shell script like this:
 ```shell
-python download_youtube_noise.py --input_file unbalanced_train_segments.csv --output_dir $NOISE_DIR
+./data/audioset/download_yt_noise.sh
 ```
+It will create a folder `yt-downloads` which contains the raw audio files (some may yet be flawed).
 
 ### Audio Extraction
 We use several processing steps to form our data set from the Common Voice downloads. We recommend using the config file to define and document the processing steps. Please take a look at the CLI arguments in the script for more information on the options.
 ```shell
-python data/cv_to_wav.py --help
+python data/common-voice/cv_to_wav.py --help
 ```
-Modify the config file accordingly, e.g. replace `cv_dir` with $DATA_DIR and name the languages in the table at the bottom.
+__Note:__ Modify the config file accordingly, e.g. replace `cv_input_dir` with `$CV_DL_DIR` and `cv_output_dir` with `$DATA_DIR` (the final dataset directory). Don't forget to name the languages in the table at the bottom.
 ```shell
-python data/cv_to_wav.py --config data/config_moz.yaml
+python data/common-voice/cv_to_wav.py --config data/common-voice/config_moz.yaml
 ```
-Afterwards, create another folder, called *__noise* in the train, dev and test sub folders and fill it with portions of the YouTube noise (e.g. 80, 10, 10).
+##### Add the Noise
+Afterwards we check if the noise data is valid and cut and split it into the previously created `$DATA_DIR`.
+Please use the provided shell script and pass it the `$DATA_DIR` path:
+```shell
+./data/audioset/process_and_split_noise.sh $DATA_DIR
+```
 
 ### Preprocessing
 In this version, we use [kapre](https://kapre.readthedocs.io/en/latest/) to extract the features (such as FFT or Mel-filterbanks) within the TensorFlow graph. This is especially useful in terms of portability, as we only need to pass the normalized audio to the model.

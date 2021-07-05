@@ -24,8 +24,11 @@ from queue import Queue
 
 def downloadEnclosures(i, q):
 	while True:
-		yt_url, start_s, length_s, output_dir = q.get()
-		download(yt_url, start_s, length_s, output_dir)
+		try:
+			yt_url, start_s, length_s, output_dir = q.get()
+			download(yt_url, start_s, length_s, output_dir)
+		except Exception as e:
+			print("Download oopsi: ", e)
 		q.task_done()
 
 
@@ -44,7 +47,7 @@ if __name__ == '__main__':
 						default=os.path.join(os.getcwd(), "yt-noise"),
 						help="path to the output directory")
 	parser.add_argument('--num_threads', type=int,
-						default=4,
+						default=8,
 						help="amount of worker threads")
 	parser.add_argument('--downloads', type=int,
 						default=100000,
@@ -137,16 +140,15 @@ if __name__ == '__main__':
 			#  skip the first three line
 			print(f.readline())
 			print(f.readline())
-			print(f.readline())
+			f.readline()
 
 			# as long as we didn't reach the maximum number of files
 			while file_count < num_files:
 
 				# get a line
 				line = f.readline()[:-1].split(',')
-				# print(line)
 
-				# if the line is not empty
+				# if the line is not empty	
 				if line[0] != "":
 
 					# get the URL and start and end points
@@ -165,28 +167,20 @@ if __name__ == '__main__':
 							label = label[:-1]
 						labels.append(label)
 
-					# if audio_length != 10.0:
-					# 	print("Sample not 10 seconds")
-					# 	continue
-
 					# apply label restrictions
 					if any(label in labels for label in restrictions):
-						print("Found restricted label in {}".format(labels))
+						# print("Found restricted label in {}".format(labels))
 						continue
 
 					if not any (label in labels for label in positives):
-						print("Label not in positives!")
+						# print("Label not in positives!")
 						continue
 
-					print("Something in {} is important and nothing restricted". format(labels))
+					# print("Something in {} is important and nothing restricted". format(labels))
 
 					# get the data and save it
-					try:
-						function_args = (URL, start, audio_length, args.output_dir)
-						queue.put(function_args)
-					except Exception as e:
-						print("Download oopsi: ", e)
-						continue
+					function_args = (URL, start, audio_length, args.output_dir)
+					queue.put(function_args)
 
 					file_count += 1
 
@@ -198,4 +192,5 @@ if __name__ == '__main__':
 			print("End of file!")
 	
 	# wait until the workers are ready
+	print("Waiting for threads to finish... this may take hours")
 	queue.join()
