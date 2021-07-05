@@ -1,6 +1,6 @@
 auditok
 pydub
-tensorflow
+tensorflow==2.4
 nlpaug
 matplotlib
 scipy

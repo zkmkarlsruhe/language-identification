@@ -139,9 +139,7 @@ python train.py --config config_train.yaml
 
 ## TODO
 - evaluate the fairness of the model
-- use a voice (instead of audio) activity detector  
-- rework data loading process (e.g. use TFDataset)
-- more automation in the data set creation steps
+- use a voice (instead of audio) activity detector
 
 
 ## Further Reading

@@ -17,6 +17,7 @@ from tensorflow.keras.losses import CategoricalCrossentropy as CrossLoss
 from tensorflow.keras.metrics import Precision, Recall, CategoricalAccuracy, CategoricalCrossentropy
 from tensorflow.keras.utils import Progbar
 
+import scipy.io.wavfile as wav
 
 from kapre.composed import get_stft_magnitude_layer
 from kapre.composed import get_melspectrogram_layer
@@ -35,7 +36,11 @@ def create_dataset_from_set_of_files(ds_dir, languages):
 
 	# create a dataset yielding audio and categorical label
 	def process_path(file_path):
+		# read the wav file
 		x = tf.io.read_file(file_path)
+		x, _ = tf.audio.decode_wav(x)
+		# x = tf.squeeze(x, axis=-1)
+		
 		# get label and convert to categorical 
 		label = tf.strings.split(file_path, os.sep)[-2]
 		y = tf.cast(tf.equal(label, languages), tf.float32)
@@ -43,6 +48,16 @@ def create_dataset_from_set_of_files(ds_dir, languages):
 	labeled_ds = list_ds.map(process_path)
 
 	return labeled_ds
+
+
+def tf_normalize(signal):
+	"""
+	normalize a float signal to have a maximum absolute value of 1.0
+	"""
+	highest = tf.math.abs(tf.math.reduce_max(signal))
+	lowest = tf.math.abs(tf.math.reduce_min(signal))
+	abs_max = tf.math.maximum(highest, lowest)
+	return tf.math.divide(signal, abs_max)
 
 
 def get_feature_layer(feature_type, feature_nu, sample_rate):
@@ -59,6 +74,7 @@ def get_feature_layer(feature_type, feature_nu, sample_rate):
 		return None
 	return m
 
+
 def write_csv(logging_dir, epoch, logs={}):
 		with open(logging_dir, mode='a') as log_file:
 			log_file_writer = csv.writer(log_file, delimiter=',')
@@ -74,7 +90,7 @@ class CustomCSVCallback(Callback):
 		self._logging_dir = logging_dir
 		self._counter = 0
 	def on_epoch_end(self, epoch, logs={}):
-		write_csv(self.logging_dir, epoch, logs)
+		write_csv(self._logging_dir, epoch, logs)
 
 
 def get_saved_model_function(model, dims=(None, None, 1)):

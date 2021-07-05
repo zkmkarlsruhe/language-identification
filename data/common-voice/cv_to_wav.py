@@ -43,7 +43,6 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
 	input_sub_dir = os.path.join(input_dir, lang_abb)
 	input_sub_dir_clips = os.path.join(input_sub_dir, "clips")
 
-
 	splits = ["train", "dev", "test"]
 
 	fast_forward = 0	

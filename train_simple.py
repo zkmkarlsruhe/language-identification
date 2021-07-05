@@ -23,9 +23,10 @@ from tensorflow.keras.metrics import Precision, Recall, CategoricalAccuracy
 from tensorflow.keras.models import load_model
 
 import src.models as models
-from src.utils.training_utils import CustomCSVCallback, get_saved_model_function, create_dataset_from_set_of_files
-from src.audio.features import normalize
+from src.utils.training_utils import CustomCSVCallback, get_saved_model_function,
+from src.utils.training_utils import create_dataset_from_set_of_files, tf_normalize
 from src.audio.augment import AudioAugmenter
+
 
 
 def train(config_path, log_dir, model_path):
@@ -62,8 +63,8 @@ def train(config_path, log_dir, model_path):
 						ds_dir=train_dir, languages=languages)
 	val_ds = create_dataset_from_set_of_files(
 						ds_dir=val_dir, languages=languages)
-	train_ds.batch(batch_size)
-	val_ds.batch(batch_size)
+	train_ds = train_ds.batch(batch_size)
+	val_ds = val_ds.batch(batch_size)
 
 	# Optional augmentation of the training set
 	if augment:
@@ -71,11 +72,11 @@ def train(config_path, log_dir, model_path):
 		def process_aug(audio, label):
 			audio = augmenter.augment_audio_array(audio)
 			return audio, label
-		train_ds.map(process_aug, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+		# train_ds.map(process_aug, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
 	# normalize audio
 	def process(audio, label):
-		audio = normalize(audio)
+		audio = tf_normalize(audio)
 		return audio, label
 	train_ds = train_ds.map(process, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 	val_ds = val_ds.map(process, num_parallel_calls=tf.data.experimental.AUTOTUNE)
@@ -83,8 +84,6 @@ def train(config_path, log_dir, model_path):
 	# prefetch data
 	train_ds = train_ds.prefetch(tf.data.experimental.AUTOTUNE)
 	val_ds = val_ds.prefetch(tf.data.experimental.AUTOTUNE)
-
-	print("Output classes:", train_ds.class_names)
 
 	# Training Callbacks
 	tensorboard_callback = TensorBoard(log_dir=log_dir, write_images=True)
