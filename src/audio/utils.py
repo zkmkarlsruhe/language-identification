@@ -63,3 +63,33 @@ def to_array(data, sample_width, channels):
 		return np.array(array(fmt, data))
 	return separate_channels(data, fmt, channels)
 
+
+## Auditok Validators
+
+from auditok.core import DataValidator
+from auditok.util import DataSource
+ 
+ 
+class LogicValidater(DataValidator):
+   def is_valid(self, frame):
+           return frame
+ 
+class LogicDataSource(DataSource):
+   def __init__(self, data):
+       self._data = None
+       self._current = 0
+       self.set_data(data)
+ 
+   def read(self):
+       if self._current >= len(self._data):
+           return None
+       self._current += 1
+       return self._data[self._current - 1]
+ 
+   def set_data(self, data):
+       if not isinstance(data, list):
+           raise ValueError("data must an instance of str")
+       self._data = data
+       self._current = 0
+ 
+
