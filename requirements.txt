@@ -9,3 +9,8 @@ python_speech_features
 nlpaug
 pyyaml
 kapre
+
+torch
+torchaudio
+soundfile
+pandas
