@@ -21,6 +21,8 @@ import scipy.io.wavfile as wav
 import shutil
 from yaml import load
 from src.audio.chop_up import chop_up_audio
+from src.audio.silero_vad.utils_vad import VADTokenizer
+
 
 def sentence_is_too_short(sentence_len, language):
 	if language == "mandarin":
@@ -32,7 +34,7 @@ def sentence_is_too_short(sentence_len, language):
 def traverse_csv(language, input_dir, output_dir, max_chops, 
 				desired_audio_length_s, sample_rate, sample_width,
 				allowed_downvotes, remove_raw, min_length_s, max_silence_s,
-				energy_threshold, use_validated_set):
+				energy_threshold, use_vad=True):
 	"""
 	traverses the language specific file, extract and save important samples.
 	"""
@@ -45,7 +47,10 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
 
 	splits = ["train", "dev", "test"]
 
-	fast_forward = 0	
+	# todo: fix path
+	if use_vad:
+		model_path = "src/audio/silero_vad/model.jit"
+		vad = VADTokenizer(model_path, min_length_s, desired_audio_length_s, max_silence_s)
 
 	for split_index, split in enumerate(splits):
 
@@ -64,13 +69,7 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
 		to_produce = int(max_chops[split_index])
 		done = False
 
-		if use_validated_set:
-			input_clips_file = os.path.join(input_sub_dir, "validated.tsv")
-			if to_produce == -1: 
-				print("when using validated.tsv, please set number of chops to a positive number")
-				exit()
-		else:
-			input_clips_file = os.path.join(input_sub_dir, split + ".tsv")
+		input_clips_file = os.path.join(input_sub_dir, split + ".tsv")
 
 
 		# open mozillas' dataset file
@@ -79,11 +78,6 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
 			try:
 				# skip the first line
 				line = f.readline()
-
-				# when using the validated.tsv we have to start where we left off
-				if use_validated_set:
-					for skip in range(fast_forward):
-						f.readline()
 
 				while True:
 
@@ -119,10 +113,17 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
 						# chop up the samples and write to file
 						rand_int = np.random.randint(low=0, high=2)
 						padding_choice = ["Data", "Silence"][rand_int]
-						chips = chop_up_audio (wav_path_raw, padding=padding_choice,
+
+
+						if vad:
+							chips = vad.chop_from_file(test_file)
+						else:
+							chips = chop_up_audio (wav_path_raw, padding=padding_choice,
 											desired_length_s=desired_audio_length_s,
 											min_length_s=min_length_s, max_silence_s=max_silence_s,
 											threshold=energy_threshold)
+
+
 						for chip_name, chip_fs, chip_data in chips:
 							wav_path = os.path.join(output_dir_wav, chip_name + ".wav")
 							wav.write(wav_path, chip_fs, chip_data)
@@ -136,14 +137,6 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
 								break
 
 						if done:
-							# when using the validated.tsv we have to make sure the same
-							# speakers wont appear in more than one set. Luckely, they
-							# are in ordered by speaker hash id.
-							if use_validated_set:
-								last_speaker = speaker = line[0]
-								while speaker == last_speaker:
-									speaker = f.readline().split('\t')[0]
-									fast_forward += 1
 							break
 
 					else:
@@ -169,8 +162,6 @@ if __name__ == '__main__':
 	# Data 
 	parser.add_argument("--max_chops", type=int, nargs=3, default=[-1, -1, -1],
 						help="amount of maximum wav chops to be produced per split. -1 means all.")
-	parser.add_argument("--use_validated_set", type=bool, default=False,
-						help="whether to use the train, test and dev sets or all validated data")
 	parser.add_argument("--allowed_downvotes", type=int, default=0,
 						help="amount of downvotes allowed")
 	# Audio file properties
@@ -186,6 +177,8 @@ if __name__ == '__main__':
 						help="sample rate of files being produced")
 	parser.add_argument('--sample_width', type=int, default=2, choices=(1, 2, 4),
 						help='number of bytes per sample')
+	parser.add_argument("--use_vad", type=bool, default=True,
+						help="whether to use Silero VAD or Auditok for chopping up")
 	# System
 	parser.add_argument("--parallelize", type=bool, default=True,
 						help="whether to use multiprocessing")
@@ -257,7 +250,7 @@ if __name__ == '__main__':
 		function_args = (language, args.cv_input_dir, args.cv_output_dir, args.max_chops, 
 						args.audio_length_s, args.sample_rate, args.sample_width, 
 						args.allowed_downvotes, args.remove_raw, args.min_length_s,
-						args.max_silence_s, args.energy_threshold, args.use_validated_set)
+						args.max_silence_s, args.energy_threshold, args.use_vad)
 
 		# process current language for all splits
 		if args.parallelize:
