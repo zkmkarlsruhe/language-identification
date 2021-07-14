@@ -1,6 +1,6 @@
 # Common Voice to Wav
-cv_input_dir: "test_data/test2/"
-cv_output_dir: "test_data/out"
+cv_input_dir: "../data/common_voice/corpus6.1/"
+cv_output_dir: "../data/common_voice_filtered/five_sec_vad"
 
 max_chops: [30000, 3000, 1000]
 allowed_downvotes: 0
@@ -19,17 +19,17 @@ remove_raw: True
 language_table:
   - lang: "english"
     dir: "en"
-#  - lang: "farsi"
-#    dir: "fa"
+ - lang: "farsi"
+   dir: "fa"
   - lang: "french"
     dir: "fr"
   - lang: "german"
     dir: "de"
-#  - lang: "polish"
-#    dir: "pl"
-#  - lang: "mandarin"
-#    dir: "zh-CN"
-#  - lang: "russian"
-#    dir: "ru"
+ - lang: "polish"
+   dir: "pl"
+ - lang: "mandarin"
+   dir: "zh-CN"
+ - lang: "russian"
+   dir: "ru"
   - lang: "spanish"
     dir: "es"
