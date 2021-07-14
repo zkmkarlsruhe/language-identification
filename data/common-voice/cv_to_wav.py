@@ -205,7 +205,6 @@ if __name__ == '__main__':
 			args.sample_width      = config["sample_width"]
 			args.parallelize       = config["parallelize"]
 			args.remove_raw        = config["remove_raw"]
-			args.use_validated_set = config["use_validated_set"]
 			language_table         = config["language_table"]
 
 			# copy config to output dir
