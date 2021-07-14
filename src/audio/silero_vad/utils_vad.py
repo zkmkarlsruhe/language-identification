@@ -718,8 +718,7 @@ def drop_chunks(tss: List[dict],
 
 
 
-
-
+import os
 from src.audio.utils import pad_with_data, pad_with_noise, pad_with_silence, to_array
 from src.audio.utils import LogicDataSource, LogicValidater
 from auditok.core import StreamTokenizer
@@ -764,10 +763,6 @@ class VADTokenizer():
 		# extend tokens to desired length
 		audio_cuttings = []
 		for i, r in enumerate(regions):
-
-			numpy_data = r.cpu().detach().numpy()
-			print(numpy_data)
-			print(len(numpy_data))
 
 			if padding == "Silence":
 				extended_token = pad_with_silence(numpy_data, self.nn_input_len)
