@@ -116,7 +116,7 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
 
 
 						if vad:
-							chips = vad.chop_from_file(test_file)
+							chips = vad.chop_from_file(wav_path_raw, padding=padding_choice)
 						else:
 							chips = chop_up_audio (wav_path_raw, padding=padding_choice,
 											desired_length_s=desired_audio_length_s,
