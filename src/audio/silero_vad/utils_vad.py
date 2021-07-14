@@ -764,6 +764,8 @@ class VADTokenizer():
 		audio_cuttings = []
 		for i, r in enumerate(regions):
 
+			numpy_data = r.cpu().detach().numpy()
+
 			if padding == "Silence":
 				extended_token = pad_with_silence(numpy_data, self.nn_input_len)
 			elif padding == "Data":
