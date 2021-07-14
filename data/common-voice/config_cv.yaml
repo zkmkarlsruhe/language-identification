@@ -1,6 +1,6 @@
 # Common Voice to Wav
-cv_input_dir: "../data/common_voice/corpus6.1/"
-cv_output_dir: "../data/common_voice_filtered/five_sec_vad"
+cv_input_dir: "/data/common_voice/corpus6.1/"
+cv_output_dir: "/data/common_voice_filtered/five_sec_vad"
 
 max_chops: [30000, 3000, 1000]
 allowed_downvotes: 0
