@@ -108,8 +108,9 @@ python data/common-voice/cv_to_wav.py --help
 ```
 __Note:__ Modify the config file accordingly, e.g. replace `cv_input_dir` with `$CV_DL_DIR` and `cv_output_dir` with `$DATA_DIR` (the final dataset directory). Don't forget to name the languages in the table at the bottom.
 ```shell
-python data/common-voice/cv_to_wav.py --config data/common-voice/config_moz.yaml
+python data/common-voice/cv_to_wav.py --config data/common-voice/config_cv.yaml
 ```
+
 ##### Add the Noise
 Afterwards we check if the noise data is valid and cut and split it into the previously created `$DATA_DIR`.
 Please use the provided shell script and pass it the `$DATA_DIR` path:
