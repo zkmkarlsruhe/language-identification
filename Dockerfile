@@ -20,5 +20,8 @@ RUN pip install -r requirements.txt
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+
+ENV PYTHONPATH="${PYTHONPATH}:/work/src"
+
 WORKDIR /work/src
 
