@@ -12,7 +12,7 @@ import os
 import time
 
 import auditok
-from .utils import pad_with_data, pad_with_noise, pad_with_silence, to_array
+from src.audio.utils import pad, to_array
 
 
 def chop_up_audio (file_name, desired_length_s = 5,
@@ -35,16 +35,8 @@ def chop_up_audio (file_name, desired_length_s = 5,
 	# extend tokens to desired length
 	audio_cuttings = []
 	for i, r in enumerate(regions):
-
 		numpy_data = to_array(r._data, 2, 1)
-
-		if padding == "Silence":
-			extended_token = pad_with_silence(numpy_data, nn_input_len)
-		elif padding == "Data":
-			extended_token = pad_with_data(numpy_data, nn_input_len)
-		else:
-			extended_token = pad_with_noise(numpy_data, nn_input_len)
-
+		extended_token = pad(numpy_data, nn_input_len, padding)
 		file_name_out = os.path.split(file_name)[-1][:-4] + "_" + str(i)
 		data_tuple = (file_name_out, sample_rate, extended_token)
 		audio_cuttings.append(data_tuple)
