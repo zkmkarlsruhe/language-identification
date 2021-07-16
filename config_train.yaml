@@ -1,7 +1,8 @@
 # Dataset
-languages: ["__noise","english","french","german","spanish"]
-train_dir: "/data/common_voice_filtered/fiveSec/wav/train"
-val_dir: "/data/common_voice_filtered/fiveSec/wav/test"
+#languages: ["__noise","english","french","german","spanish"]
+languages: ["english","french","german","spanish"]
+train_dir: "/data/common_voice_filtered/five_sec_vad/wav/train"
+val_dir: "/data/common_voice_filtered/five_sec_vad/wav/test"
 augment: True
 
 # Audio
@@ -14,8 +15,8 @@ feature_nu: 1024
 batch_size: 64 
 learning_rate: 0.001
 num_epochs: 20
-#model: "AttRnn"            # name the file in src/models
-model: "ResNet"            # name the file in src/models
+model: "AttRnn"            # name the file in src/models
+#model: "ResNet"            # name the file in src/models
 
 # Other
 show_progress: True
