@@ -17,6 +17,8 @@ parallelize: True
 remove_raw: True
 
 language_table:
+  - lang: "chinese"
+    dir: "zh-CN"
   - lang: "english"
     dir: "en"
   - lang: "farsi"
@@ -25,10 +27,10 @@ language_table:
     dir: "fr"
   - lang: "german"
     dir: "de"
+  - lang: "italian"
+    dir: "it"
   - lang: "polish"
     dir: "pl"
-  - lang: "mandarin"
-    dir: "zh-CN"
   - lang: "russian"
     dir: "ru"
   - lang: "spanish"
