@@ -719,7 +719,7 @@ def drop_chunks(tss: List[dict],
 
 
 import os
-from src.audio.utils import pad_with_data, pad_with_noise, pad_with_silence, to_array
+from src.audio.utils import pad
 from src.audio.utils import LogicDataSource, LogicValidater
 from auditok.core import StreamTokenizer
 
@@ -759,20 +759,11 @@ class VADTokenizer():
 		# reconstruct audio regions from index regions
 		regions = [wav[index[1]*self.vad_resolution: index[2]*self.vad_resolution] for index in indices]
 
-
 		# extend tokens to desired length
 		audio_cuttings = []
 		for i, r in enumerate(regions):
-
 			numpy_data = r.cpu().detach().numpy()
-
-			if padding == "Silence":
-				extended_token = pad_with_silence(numpy_data, self.nn_input_len)
-			elif padding == "Data":
-				extended_token = pad_with_data(numpy_data, self.nn_input_len)
-			else:
-				extended_token = pad_with_noise(numpy_data, self.nn_input_len)
-
+			extended_token = pad(numpy_data, self.nn_input_len, padding)
 			file_name_out = os.path.split(file_path)[-1][:-4] + "_" + str(i)
 			data_tuple = (file_name_out, self.sample_rate, extended_token)
 			audio_cuttings.append(data_tuple)

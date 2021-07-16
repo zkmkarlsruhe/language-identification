@@ -114,8 +114,7 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
 						rand_int = np.random.randint(low=0, high=2)
 						padding_choice = ["Data", "Silence"][rand_int]
 
-
-						if vad:
+						if use_vad:
 							chips = vad.chop_from_file(wav_path_raw, padding=padding_choice)
 						else:
 							chips = chop_up_audio (wav_path_raw, padding=padding_choice,
@@ -123,8 +122,10 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
 											min_length_s=min_length_s, max_silence_s=max_silence_s,
 											threshold=energy_threshold)
 
-
 						for chip_name, chip_fs, chip_data in chips:
+							if chip_data.dtype == "float32":
+								chip_data = chip_data * 32768
+								chip_data = chip_data.astype("int16")
 							wav_path = os.path.join(output_dir_wav, chip_name + ".wav")
 							wav.write(wav_path, chip_fs, chip_data)
 							produced_files += 1
@@ -155,9 +156,9 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--config_path', default=None,
 						help="path to the config yaml file. When given, arguments will be ignored")
-	parser.add_argument("--cv_input_dir", type=str, default=None,
+	parser.add_argument("--cv_input_dir", type=str, default="common_voice",
 						help="directory containing all languages")
-	parser.add_argument("--cv_output_dir", type=str, default="../res",
+	parser.add_argument("--cv_output_dir", type=str, default="common_voice_processed",
 						help="directory to receive converted clips of all languages")
 	# Data 
 	parser.add_argument("--max_chops", type=int, nargs=3, default=[-1, -1, -1],
@@ -189,6 +190,7 @@ if __name__ == '__main__':
 	# overwrite arguments when config is given
 	if args.config_path:
 		config = load(open(args.config_path, "rb"))
+		
 		if config is None:
 				print("Could not find config file")
 				exit(-1)
@@ -205,6 +207,7 @@ if __name__ == '__main__':
 			args.sample_width      = config["sample_width"]
 			args.parallelize       = config["parallelize"]
 			args.remove_raw        = config["remove_raw"]
+			args.use_vad           = config["use_vad"]
 			language_table         = config["language_table"]
 
 			# copy config to output dir
