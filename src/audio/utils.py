@@ -30,7 +30,7 @@ def pad_with_silence(data, max_len):
 
 def pad_with_data(data, max_len):
 	to_add = max(max_len - len(data), 0)
-	padded = np.zeros(shape=(max_len,), dtype="int16")
+	padded = np.zeros(shape=(max_len,), dtype="float32")
 	if to_add:
 		repeat = int(max_len / len(data))
 		rest = max_len % len(data)
