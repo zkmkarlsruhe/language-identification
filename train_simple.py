@@ -23,7 +23,7 @@ from tensorflow.keras.metrics import Precision, Recall, CategoricalAccuracy
 from tensorflow.keras.models import load_model
 
 import src.models as models
-from src.utils.training_utils import CustomCSVCallback, get_saved_model_function,
+from src.utils.training_utils import CustomCSVCallback, get_saved_model_function
 from src.utils.training_utils import create_dataset_from_set_of_files, tf_normalize
 from src.audio.augment import AudioAugmenter
 
