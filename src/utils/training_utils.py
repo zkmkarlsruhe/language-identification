@@ -81,8 +81,10 @@ def write_csv(logging_dir, epoch, logs={}):
 			log_file_writer = csv.writer(log_file, delimiter=',')
 			if epoch == 0:
 				row = list(logs.keys())
+				row.insert(0, 'epoch')
 				log_file_writer.writerow(row)
 			row_vals = [round(x, 6) for x in list(logs.values())]
+			row_vals.insert(0, epoch)
 			log_file_writer.writerow(row_vals)
 
 
