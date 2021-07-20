@@ -1,6 +1,7 @@
 # Dataset
 #languages: ["__noise","english","french","german","spanish"]
-languages: ["english","french","german","spanish"]
+languages: ["__noise","chinese","english","french","german","italian","spanish","russian"]
+
 train_dir: "/data/common_voice_filtered/five_sec_vad/wav/train"
 val_dir: "/data/common_voice_filtered/five_sec_vad/wav/test"
 augment: True
