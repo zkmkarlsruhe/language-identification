@@ -93,13 +93,32 @@ __Note:__ In order to use our provided download script, you have to generate and
 ```
 
 In the end, you need a folder, referred to as `$CV_DL_DIR`, which contains subfolders for every language that you want to classify.
+It may look something like this:
+```
+common-voice/
+└──en/
+└────clips/
+└──────*.mp3
+└────train.tsv
+└────dev.tsv
+└────test.tsv
+└──de/
+└────...
+└──fa/
+└────...
+└──kab/
+└────...
+```
 
-##### AudioSet
+##### AudioSet (Optional)
 In this section we will first download the AudioSet meta data file from [this website](https://research.google.com/audioset/download.html). Next, we will search it for specific labels using the provided `data/audioset/download_youtube_noise.py` script. This python script defines the labels that are relevant and those that are not allowed (human voice). With the restrictions for our use case we extracted around 18,000 samples from AudioSet. You can call the shell script like this:
 ```shell
-./data/audioset/download_yt_noise.sh
+YOUTUBE_DATA_DIR=yt-downloads
+./data/audioset/download_yt_noise.sh $YOUTUBE_DATA_DIR
 ```
-It will create a folder `yt-downloads` which contains the raw audio files (some may yet be flawed).
+It will attempt to download all files to   folder that you specified in `$YOUTUBE_DATA_DIR`. Please note that some may yet be flawed as videos may not be available in your country.
+
+__Note:__ Even with parallelization this process will likely take hours, as the script downloads the whole media file and then cuts the important part.
 
 ### Audio Extraction
 We use several processing steps to form our data set from the Common Voice downloads. We recommend using the config file to define and document the processing steps. Please take a look at the CLI arguments in the script for more information on the options.
@@ -111,11 +130,11 @@ __Note:__ Modify the config file accordingly, e.g. replace `cv_input_dir` with `
 python data/common-voice/cv_to_wav.py --config data/common-voice/config_cv.yaml
 ```
 
-##### Add the Noise
+##### Add the Noise (optional)
 Afterwards we check if the noise data is valid and cut and split it into the previously created `$DATA_DIR`.
-Please use the provided shell script and pass it the `$DATA_DIR` path:
+Please use the provided shell script and pass it the paths to youtube data and processed speech data:
 ```shell
-./data/audioset/process_and_split_noise.sh $DATA_DIR
+./data/audioset/process_and_split_noise.sh $YOUTUBE_DATA_DIR $DATA_DIR
 ```
 
 ### Preprocessing
@@ -140,15 +159,18 @@ python train.py --config config_train.yaml
 
 ## TODO
 - evaluate the fairness of the model
-- use a voice (instead of audio) activity detector
+- report results
+- try transformer models
+- try X-Vector Speech features
 
 
 ## Further Reading
 * Types of [Speech Features](https://haythamfayek.com/2016/04/21/speech-processing-for-machine-learning.html)
+* Instead of using handcrafted speech features one could use [YamNet](https://www.tensorflow.org/tutorials/audio/transfer_learning_audio)
 * We used [CRNN-LID](https://github.com/HPI-DeepLearning/crnn-lid) when we first started
 * We ported the network from [this keyword-spotting code](https://github.com/douglas125/SpeechCmdRecognition)
-* [VoxLingua107](http://bark.phon.ioc.ee/voxlingua107/) another multi-lingual dataset
-* [Silero-VAD](https://github.com/snakers4/silero-vad) a free Voice Activity Detector and Language Identifier (en, es, de, ru)
+* [VoxLingua107](http://bark.phon.ioc.ee/voxlingua107/): another multi-lingual dataset
+* [Silero-VAD](https://github.com/snakers4/silero-vad): a free Voice Activity Detector and Language Identifier (en, es, de, ru)
 
 
 ## Contribute

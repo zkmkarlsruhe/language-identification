@@ -1,6 +1,6 @@
-YTDL_DIR="/data/noise"
+YTDL_DIR=$1
 TEMP_DIR=$PWD/"yt-noise-processed"
-CV_DIR="/data/common_voice_filtered/five_sec_vad/wav/"
+CV_DIR=$2
 
 echo "Processing downloaded samples..."
 python3 data/other/cut_audio.py --input_dir $YTDL_DIR --output_dir $TEMP_DIR

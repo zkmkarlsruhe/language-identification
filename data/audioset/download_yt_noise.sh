@@ -1,6 +1,6 @@
 AUDIOSET_URL="http://storage.googleapis.com/us_audioset/youtube_corpus/v1/csv/unbalanced_train_segments.csv"
 AUDIOSET_CSV=$PWD/"unbalanced.csv"
-YTDL_DIR=$PWD/"yt-downloads"
+YTDL_DIR=$1
 
 echo "Downloading AudioSet meta info... this may take a while..."
 wget -O $AUDIOSET_CSV  $AUDIOSET_URL
