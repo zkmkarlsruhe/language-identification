@@ -17,6 +17,4 @@ learning_rate: 0.001
 num_epochs: 20
 model: "AttRnn"            # name the file in src/models
 #model: "ResNet"            # name the file in src/models
-
-# Other
-show_progress: True
+model_path: ""           # path to a trained SavedModel to start from
