@@ -64,27 +64,30 @@ def train(config_path, log_dir):
 						ds_dir=train_dir, languages=languages)
 	val_ds = create_dataset_from_set_of_files(
 						ds_dir=val_dir, languages=languages)
-	train_ds = train_ds.batch(batch_size)
-	val_ds = val_ds.batch(batch_size)
 
 	# Optional augmentation of the training set
-	## Note: tf.py_function allows to construct a graph but code is executed in python 
+	## Note: tf.py_function allows to construct a graph but code is executed in python (may be slow)
 	if augment:
 		augmenter = AudioAugmenter(audio_length_s, sample_rate)
+		# process a single audio array (note: dataset needs to be batched later on)
 		def process_aug(audio, label):
-			audio = augmenter.augment_audio_array(audio)
-			return audio, label
-		aug_wav = lambda x,y: tf.py_function(process_aug, [x,y], tf.float32)
-		train_ds.map(aug_wav, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-		
-	# normalize audio
+			augmented_audio = augmenter.augment_audio(audio.numpy())
+			tensor_audio = tf.convert_to_tensor(augmented_audio, dtype=tf.float32)
+			return tensor_audio, label
+		aug_wav = lambda x,y: tf.py_function(process_aug, [x, y], [tf.float32, tf.float32])
+		train_ds = train_ds.map(aug_wav, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+
+	# normalize audio and expand by one dimension (as required by feature extraction)
 	def process(audio, label):
 		audio = tf_normalize(audio)
+		audio = tf.expand_dims(audio, axis=-1)
 		return audio, label
 	train_ds = train_ds.map(process, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 	val_ds = val_ds.map(process, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
-	# prefetch data
+	# batch and prefetch data
+	train_ds = train_ds.batch(batch_size)
+	val_ds = val_ds.batch(batch_size)
 	train_ds = train_ds.prefetch(tf.data.experimental.AUTOTUNE)
 	val_ds = val_ds.prefetch(tf.data.experimental.AUTOTUNE)
 
@@ -104,7 +107,7 @@ def train(config_path, log_dir):
 		# tensorboard_callback, 
 		csv_logger_callback, 
 		reduce_on_plateau, 
-		model_checkpoint_callback,
+		# model_checkpoint_callback,
 		# early_stopping_callback, 
 		]
 
