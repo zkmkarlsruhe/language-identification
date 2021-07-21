@@ -22,14 +22,15 @@ class AudioAugmenter(object):
 		vltp = naa.VtlpAug(sampling_rate=fs, zone=(0.2, 0.8), coverage=0.8, 
 							fhi=4800, factor=(0.9, 1.1))
 		noise = naa.NoiseAug(zone=(0.0, 1.0), coverage=1, color='white')
-		# speed = naa.SpeedAug(zone=(0.0, 1.0), coverage=0.1, factor=(0.9, 1.1))
-		# pitch = naa.PitchAug(sampling_rate=16000, zone=(0, 1), coverage=0.3, factor=(0, 2.1))
+		speed = naa.SpeedAug(zone=(0.0, 1.0), coverage=0.1, factor=(0.9, 1.1))
+		pitch = naa.PitchAug(sampling_rate=16000, zone=(0, 1), coverage=0.3, factor=(0, 2.1))
+		# comment the augmentation that you don't need
 		self._aug_flow = flow.Sequential([
 			shift,
 			crop,
-			# vltp,
-			# speed,
-			# pitch,
+			vltp,
+			speed,
+			pitch,
 			noise,
 		])
 
@@ -40,16 +41,26 @@ class AudioAugmenter(object):
 			signal (array or list): signal or list of signals
 
 		Returns:
-			[list]: a list of augmented signals padded to 
+			[list]: a list of augmented signals padded with silence 
 		"""
 		augmented_data = self._aug_flow.augment(signal, num_thread=8)
-
-		# TODO write a custom audio augmenter for padding
 		data = []
 		for x in augmented_data:
 			x = pad_with_silence(x, self.target_length_s * self.fs)
 			data.append(x)
-			
+		return data
+
+	def augment_audio(self, signal):
+		"""Augment a single audio signal
+
+		Args:
+			signal (array): signal 
+
+		Returns:
+			[array]: augmented signal padded with silence
+		"""
+		augmented_data = self._aug_flow.augment(signal)
+		data = pad_with_silence(augmented_data, self.target_length_s * self.fs)
 		return data
 
 
