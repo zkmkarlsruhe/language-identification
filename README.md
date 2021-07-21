@@ -159,6 +159,7 @@ python train.py --config config_train.yaml
 
 ## TODO
 - evaluate the fairness of the model
+- revisit common voice download scripts
 - report results
 - try transformer models
 - try X-Vector Speech features
