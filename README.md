@@ -152,6 +152,8 @@ If you rather do the preprocessing separately and before training, you may want 
 ## Training
 As with the creation of the dataset we use config files to define and document the process. The options we provide should sound familiar. Most importantly, modify the placeholder for the train and validation directories, as well as the languages to be detected (noise is treated as another language).
 
+__NOTE__: Unfortunately, we still have a major issue with the data augmentation step which causes the runtime to be about 15 times more than without. We hope to address this problem in the near future.
+
 ### Docker 
 The following line runs the training process inside a docker container of the newly build image. The command will grant access to the folder holding the train and test set as well as the current working directory. Make sure to run this command in the root of the project.
 ```shell
@@ -166,8 +168,8 @@ python train.py --config config_train.yaml
 
 ## TODO
 - evaluate the fairness of the model
-- revisit common voice download scripts
 - report results
+- fix data augmentation speed
 - try transformer models
 - try X-Vector Speech features
 
