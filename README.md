@@ -126,8 +126,14 @@ We use several processing steps to form our data set from the Common Voice downl
 python data/common-voice/cv_to_wav.py --help
 ```
 __Note:__ Modify the config file accordingly, e.g. replace `cv_input_dir` with `$CV_DL_DIR` and `cv_output_dir` with `$DATA_DIR` (the final dataset directory). Don't forget to name the languages in the table at the bottom.
+
+##### Linux
 ```shell
 python data/common-voice/cv_to_wav.py --config data/common-voice/config_cv.yaml
+```
+##### Docker
+```shell
+docker run -d -u $(id -u):$(id -g) -v $(pwd):/work/src -v $(pwd)/../data/:/data lid python data/common-voice/cv_to_wav.py --config data/common-voice/config_cv.yaml
 ```
 
 ##### Add the Noise (optional)
@@ -147,10 +153,11 @@ If you rather do the preprocessing separately and before training, you may want 
 As with the creation of the dataset we use config files to define and document the process. The options we provide should sound familiar. Most importantly, modify the placeholder for the train and validation directories, as well as the languages to be detected (noise is treated as another language).
 
 ### Docker 
-The following line runs the training process inside a docker container of the newly build image. The command will grant access to the folder holding the train and test set.
+The following line runs the training process inside a docker container of the newly build image. The command will grant access to the folder holding the train and test set as well as the current working directory. Make sure to run this command in the root of the project.
 ```shell
-docker run -it --rm -v $(pwd):/work/src -v $DATA_DIR:/data lid python train.py --config config_train.yaml
+docker run -d -u $(id -u):$(id -g) -v $(pwd):/work/src -v $DATA_DIR:/data lid python train.py --config config_train.yaml
 ```
+__Note__: if a GPU is available, you need to pass its ID, e.g. "--gpus device=0"
 
 ### Local installation
 ```
