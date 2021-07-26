@@ -134,7 +134,8 @@ if __name__ == "__main__":
 						help="Path to the required config file.")
 	cli_args = parser.parse_args()
 
-	tf.config.list_physical_devices('GPU')
+	physical_devices = tf.config.list_physical_devices('GPU')
+	tf.config.experimental.set_memory_growth(physical_devices[0], True)
 	
 	# copy models & config for later
 	log_dir = os.path.join("logs", datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
