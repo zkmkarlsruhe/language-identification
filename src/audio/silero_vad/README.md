@@ -1,0 +1,2 @@
+This subfolder contains code and a pytorch model drawn from the [Silero VAD repository](https://github.com/snakers4/silero-vad).
+We slightly modified the code in order to feed the output of the pytorch model into Auditok's tokenization method.

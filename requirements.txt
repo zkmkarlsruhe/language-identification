@@ -10,6 +10,7 @@ nlpaug
 pyyaml
 kapre
 
+# Silero VAD requirements
 torch
 torchaudio
 soundfile
