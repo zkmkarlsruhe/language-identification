@@ -14,6 +14,6 @@ mkdir -p $tempdir
 tar -xf $tarname -C $tempdir
 
 # move the content to destination and clean up
-mv $tempdir/*/* .
+mv $tempdir/*/* $3
 rm -r $tempdir
 rm $tarname

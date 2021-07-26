@@ -23,8 +23,11 @@ set -e
 # change to script dir
 cd $(dirname "$0")
 
+# name the destination folder
+dest="../../../common-voice/"
+
 for src in "${downloads[@]}"
 do
   echo 'Starting download for' $src
-  ./download_and_extract.sh $src ${!src} &
+  ./download_and_extract.sh $src ${!src} $dest &
 done
