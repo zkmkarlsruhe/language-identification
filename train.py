@@ -24,7 +24,7 @@ from tensorflow.keras.models import load_model
 
 import src.models as models
 from src.utils.training_utils import CustomCSVCallback, get_saved_model_function, visualize_results
-from src.utils.training_utils import create_dataset_from_set_of_files, tf_normalize
+from src.utils.training_utils import create_dataset_from_set_of_files, tf_normalize, run_epoch
 from src.audio.augment import AudioAugmenter
 
 
@@ -54,10 +54,7 @@ def train(config_path, log_dir):
 		model_class = getattr(models, model_name)
 		model = model_class.create_model(config)
 		optimizer = Adam(lr=learning_rate)
-		model.compile(optimizer=optimizer,
-						loss=CategoricalCrossentropy(),
-						metrics=[Recall(), Precision(), CategoricalAccuracy()])
-	print(model.summary())
+	# print(model.summary())
 
 	# load the dataset
 	train_ds = create_dataset_from_set_of_files(
@@ -67,20 +64,13 @@ def train(config_path, log_dir):
 
 	# Optional augmentation of the training set
 	## Note: tf.py_function allows to construct a graph but code is executed in python (may be slow)
+	augmenter=None
 	if augment:
 		augmenter = AudioAugmenter(audio_length_s, sample_rate)
-		# process a single audio array (note: dataset needs to be batched later on)
-		def process_aug(audio, label):
-			augmented_audio = augmenter.augment_audio(audio.numpy())
-			tensor_audio = tf.convert_to_tensor(augmented_audio, dtype=tf.float32)
-			return tensor_audio, label
-		aug_wav = lambda x,y: tf.py_function(process_aug, [x, y], [tf.float32, tf.float32])
-		train_ds = train_ds.map(aug_wav, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
 	# normalize audio and expand by one dimension (as required by feature extraction)
 	def process(audio, label):
 		audio = tf_normalize(audio)
-		audio = tf.expand_dims(audio, axis=-1)
 		return audio, label
 	train_ds = train_ds.map(process, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 	val_ds = val_ds.map(process, num_parallel_calls=tf.data.experimental.AUTOTUNE)
@@ -91,25 +81,9 @@ def train(config_path, log_dir):
 	train_ds = train_ds.prefetch(tf.data.experimental.AUTOTUNE)
 	val_ds = val_ds.prefetch(tf.data.experimental.AUTOTUNE)
 
-	# Training Callbacks
-	tensorboard_callback = TensorBoard(log_dir=log_dir, write_images=True)
-	csv_logger_callback = CustomCSVCallback(os.path.join(log_dir, "log.csv"))
-	reduce_on_plateau = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3,
-										 verbose=1, min_lr=0.000001, min_delta=0.001)
-	checkpoint_filename = os.path.join(log_dir, "trained_models", "model.{epoch:02d}")
-	model_checkpoint_callback = ModelCheckpoint(checkpoint_filename, save_best_only=True, verbose=1,
-												monitor="val_categorical_accuracy",
-												save_weights_only=False)
-	early_stopping_callback = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1, mode="min")
-	
-	# comment callbacks that you don't care about
-	callbacks = [
-		# tensorboard_callback, 
-		csv_logger_callback, 
-		reduce_on_plateau, 
-		# model_checkpoint_callback,
-		# early_stopping_callback, 
-		]
+	for epoch in range(num_epochs):
+		run_epoch(model, train_ds, training=True, augmenter=augmenter, optimizer=optimizer, show_progress=True, num_batches=32)
+		run_epoch(model, val_ds, training=False, augmenter=None, optimizer=None, show_progress=True, num_batches=32)
 
 	# Training
 	history = model.fit(x=train_ds, epochs=num_epochs,
@@ -135,7 +109,8 @@ if __name__ == "__main__":
 	cli_args = parser.parse_args()
 
 	physical_devices = tf.config.list_physical_devices('GPU')
-	tf.config.experimental.set_memory_growth(physical_devices[0], True)
+	if physical_devices != []:
+		tf.config.experimental.set_memory_growth(physical_devices[0], True)
 	
 	# copy models & config for later
 	log_dir = os.path.join("logs", datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))

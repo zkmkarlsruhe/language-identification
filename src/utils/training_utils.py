@@ -127,9 +127,7 @@ def visualize_results(history, config, log_dir):
 	plt.savefig(os.path.join(log_dir, "training.png"))
 
 
-##### Old Stuff ######
-
-def run_epoch(model, batch_generator_obj, training=False, optimizer=None, show_progress=False, num_batches=32):
+def run_epoch(model, dataset, training=False, augmenter=None, optimizer=None, show_progress=False, num_batches=32):
 	"""Train or validate a model with a given generator.
 
 	Args:
@@ -149,9 +147,6 @@ def run_epoch(model, batch_generator_obj, training=False, optimizer=None, show_p
 	else:
 		print('_____ VALIDATION ______')
 
-	# get the generator function
-	batch_generator = batch_generator_obj.get_generator()
-
 	# metrics
 	loss_fn = CrossLoss()
 	metric_accuracy = CategoricalAccuracy()
@@ -162,10 +157,11 @@ def run_epoch(model, batch_generator_obj, training=False, optimizer=None, show_p
 	pb = Progbar(num_batches, stateful_metrics=metrics_names)
 
 	# iterate over the batches of a dataset
-	for x_batch, y_batch in batch_generator:
+	for x_batch, y_batch in dataset:
 
-		# audio samples are expected to have one channel
-		x_batch = np.expand_dims(x_batch, axis=-1)
+		if training and augmenter!=None:
+			x_batch = augmenter.augment_audio_array(x_batch.numpy().tolist())
+			x_batch = tf.expand_dims(x_batch, axis=-1)
 
 		with tf.GradientTape() as tape:
 			logits = model(x_batch, training=training)
