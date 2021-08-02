@@ -27,6 +27,16 @@ from kapre.composed import get_log_frequency_spectrogram_layer
 
 
 def create_dataset_from_set_of_files(ds_dir, languages):
+	"""Create an audio dataset for wav files in a specified directory and for specified languages
+
+	Args:
+		ds_dir (str): the path to the folder containing the folders for each language
+		languages (list): the folders to be included
+
+	Returns:
+		[tf.data.dataset]: the dataset and the amount of files in there
+	"""
+
 	
 	# assure languages are sorted alphanumerically
 	languages = sorted(languages)
@@ -61,7 +71,18 @@ def tf_normalize(signal):
 	return tf.math.divide(signal, abs_max)
 
 
-def get_feature_layer(feature_type, feature_nu, sample_rate):
+def get_feature_layer(feature_type, feature_nu, sample_rate):	
+	"""returns a keras.layer for given feature type and number
+
+	Args:
+		feature_type (str): one of stft, mel and fbank
+		feature_nu (int): the number of features 
+		sample_rate (int): sampling rate of input signal
+
+	Returns:
+		[keras.layer]: computes the specified features
+	"""
+
 	if feature_type == 'stft':
 		m = get_stft_magnitude_layer(n_fft=feature_nu*2, name='stft_deb')
 	elif feature_type == 'mel':
