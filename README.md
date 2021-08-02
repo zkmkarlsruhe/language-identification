@@ -17,7 +17,7 @@ Please take the following point into account when using our code.
 - Spoken Language Identification is not a trivial problem. In order to teach a machine to perfectly recognize every small sentence of a language you need the full spectrum of a language. This requires absurd amounts of data.
 - Due to acoustical overlap of languages, the task gets harder the more languages there are to distinguish from another.
 - The challenge gets even more difficult when considering different accents, ages, sex and other traits that influence the vocal tract.
-- In our first experiments we are able to distinguish 4 languages (and noise) with an overall accuracy of 85% on the Common Voice data set. Common Voice is a very diverse, noisy and community driven collection of spoken language.
+- In our first experiments we are able to distinguish 7 languages (and noise) with an overall accuracy of 83% on the Common Voice data set. Common Voice is a very diverse, noisy and community driven collection of spoken language.
 - In order to achieve our final goal of a more inclusive museum experience, we need to focus on fairness. However, as of now we haven't evaluated or mitigated bias in our system.
 
 
