@@ -14,7 +14,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.applications import ResNet50
 
 from src.utils.training_utils import get_feature_layer
-from src.models.utils import transformer_classifier
+from src.models.transformer_utils import transformer_classifier
 
 
 def create_model(config):
