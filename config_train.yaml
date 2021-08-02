@@ -4,18 +4,18 @@ languages: ["__noise","chinese","english","french","german","italian","spanish",
 
 train_dir: "/data/common_voice_filtered/five_sec_vad/wav/train"
 val_dir: "/data/common_voice_filtered/five_sec_vad/wav/test"
-augment: True
+augment: False
 
 # Audio
 audio_length_s: 5
 sample_rate: 16000
-feature_type: "stft"    # one of: mel, stft, fbank
-feature_nu: 1024
+feature_type: "mel"    # one of: mel, stft, fbank
+feature_nu: 80
 
 # Training
-batch_size: 64 
+batch_size: 128 
 learning_rate: 0.001
 num_epochs: 20
-model: "AttRnn"            # name the file in src/models
+model: "Transformer"            # name the file in src/models
 #model: "ResNet"            # name the file in src/models
 model_path: ""           # path to a trained SavedModel to start from
