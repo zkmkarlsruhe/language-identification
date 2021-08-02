@@ -27,6 +27,8 @@ def create_model(config):
 
 	inputs = Input((input_length, 1), name='input')
 	feature_extractor = get_feature_layer(feature_type, feature_nu, sample_rate)
+	if (feature_type=="stft"):
+		feature_nu = feature_nu +1 
 	sqz = Lambda(lambda q: K.squeeze(q, -1), name='squeeze_last_dim')
 	trans = transformer_classifier(
 			num_layers=8,
