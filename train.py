@@ -24,7 +24,7 @@ from tensorflow.keras.models import load_model
 
 import src.models as models
 from src.utils.training_utils import CustomCSVCallback, get_saved_model_function, visualize_results
-from src.utils.training_utils import create_dataset_from_set_of_files, tf_normalize, run_epoch
+from src.utils.training_utils import create_dataset_from_set_of_files, tf_normalize, fit
 from src.audio.augment import AudioAugmenter
 
 
@@ -57,9 +57,9 @@ def train(config_path, log_dir):
 	# print(model.summary())
 
 	# load the dataset
-	train_ds = create_dataset_from_set_of_files(
+	train_ds, num_train_files = create_dataset_from_set_of_files(
 						ds_dir=train_dir, languages=languages)
-	val_ds = create_dataset_from_set_of_files(
+	val_ds, num_val_files = create_dataset_from_set_of_files(
 						ds_dir=val_dir, languages=languages)
 
 	# Optional augmentation of the training set
@@ -81,13 +81,15 @@ def train(config_path, log_dir):
 	train_ds = train_ds.prefetch(tf.data.experimental.AUTOTUNE)
 	val_ds = val_ds.prefetch(tf.data.experimental.AUTOTUNE)
 
-	for epoch in range(num_epochs):
-		run_epoch(model, train_ds, training=True, augmenter=augmenter, optimizer=optimizer, show_progress=True, num_batches=32)
-		run_epoch(model, val_ds, training=False, augmenter=None, optimizer=None, show_progress=True, num_batches=32)
 
-	# Training
-	history = model.fit(x=train_ds, epochs=num_epochs,
-						callbacks=callbacks, validation_data=val_ds)
+	# # Training
+	# history = model.fit(x=train_ds, epochs=num_epochs,
+	# 					callbacks=callbacks, validation_data=val_ds)
+
+	# # Training
+	history = fit(model, train_set=train_ds, optimizer=optimizer, num_epochs=num_epochs, augmenter=augmenter, show_progress=True, 
+					num_batches_train=num_train_files/batch_size, num_batches_val=num_val_files/batch_size,
+					val_set=val_ds)
 
 
 	# TODO Do evaluation on model with best validation accuracy
