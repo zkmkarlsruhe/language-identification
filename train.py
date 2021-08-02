@@ -110,7 +110,7 @@ def train(config_path, log_dir):
 		# model_checkpoint_callback,
 		# early_stopping_callback, 
 		]
-
+	
 	# Training
 	history = model.fit(x=train_ds, epochs=num_epochs,
 						callbacks=callbacks, validation_data=val_ds)
@@ -135,7 +135,8 @@ if __name__ == "__main__":
 	cli_args = parser.parse_args()
 
 	physical_devices = tf.config.list_physical_devices('GPU')
-	tf.config.experimental.set_memory_growth(physical_devices[0], True)
+	if physical_devices != []:
+		tf.config.experimental.set_memory_growth(physical_devices[0], True)
 	
 	# copy models & config for later
 	log_dir = os.path.join("logs", datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
