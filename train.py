@@ -17,9 +17,6 @@ import numpy as np
 import tensorflow as tf
 
 from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, EarlyStopping, ReduceLROnPlateau
-from tensorflow.keras.optimizers import Adam, RMSprop, SGD
-from tensorflow.keras.losses import CategoricalCrossentropy
-from tensorflow.keras.metrics import Precision, Recall, CategoricalAccuracy
 from tensorflow.keras.models import load_model
 
 import src.models as models
@@ -43,7 +40,6 @@ def train(config_path, log_dir):
 	sample_rate = config["sample_rate"]
 	audio_length_s = config["audio_length_s"]
 	augment = config["augment"]
-	learning_rate = config["learning_rate"]
 	model_name = config["model"]
 	model_path = config["model_path"]
 
@@ -53,10 +49,6 @@ def train(config_path, log_dir):
 	else:
 		model_class = getattr(models, model_name)
 		model = model_class.create_model(config)
-		optimizer = Adam(lr=learning_rate)
-		model.compile(optimizer=optimizer,
-						loss=CategoricalCrossentropy(),
-						metrics=[Recall(), Precision(), CategoricalAccuracy()])
 	print(model.summary())
 
 	# load the dataset

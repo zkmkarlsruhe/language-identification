@@ -8,6 +8,10 @@ This package is published under Simplified BSD License.
 """
 
 
+from tensorflow.keras.optimizers import Adam, RMSprop, SGD
+from tensorflow.keras.losses import CategoricalCrossentropy
+from tensorflow.keras.metrics import Precision, Recall, CategoricalAccuracy
+
 from tensorflow.keras.layers import GlobalAveragePooling2D, Dropout, BatchNormalization
 from tensorflow.keras.layers import Dense, Permute, Input
 from tensorflow.keras.models import Sequential
@@ -36,5 +40,10 @@ def create_model(config):
 	model.add(GlobalAveragePooling2D())
 	model.add(Dropout(0.5))
 	model.add(Dense(len(config["languages"]), activation='softmax'))
+
+	optimizer = Adam(lr=config["learning_rate"])
+	model.compile(optimizer=optimizer,
+					loss=CategoricalCrossentropy(),
+					metrics=[Recall(), Precision(), CategoricalAccuracy()])
 
 	return model

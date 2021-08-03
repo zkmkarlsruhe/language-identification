@@ -7,6 +7,10 @@ Paul Bethge (bethge@zkm.de)
 This package is published under Simplified BSD License.
 """
 
+from tensorflow.keras.optimizers import Adam, RMSprop, SGD
+from tensorflow.keras.losses import CategoricalCrossentropy
+from tensorflow.keras.metrics import Precision, Recall, CategoricalAccuracy
+
 from tensorflow.keras.layers import Permute, Dropout, BatchNormalization
 from tensorflow.keras.layers import Input, Dense, LSTM, Conv2D, Bidirectional
 from tensorflow.keras.layers import LayerNormalization, Lambda, Dot, Softmax
@@ -61,9 +65,13 @@ def create_model(config):
 	x = Dense(32)(x)
 	x = Dropout(0.25)(x)
 
-
 	output = Dense(len(config["languages"]), activation='softmax', name='output')(x)
 
 	model = Model(inputs=[inputs], outputs=[output])
+
+	optimizer = Adam(lr=config["learning_rate"])
+	model.compile(optimizer=optimizer,
+					loss=CategoricalCrossentropy(),
+					metrics=[Recall(), Precision(), CategoricalAccuracy()])
 
 	return model

@@ -11,10 +11,12 @@ import tensorflow.keras.backend as K
 from tensorflow.keras.layers import GlobalAveragePooling2D, Dropout, BatchNormalization
 from tensorflow.keras.layers import Dense, Permute, Input, Lambda
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.applications import ResNet50
+
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.metrics import Precision, Recall
 
 from src.utils.training_utils import get_feature_layer
-from src.models.transformer_utils import transformer_classifier
+from src.models.transformer_utils import transformer_classifier, custom_binary_accuracy, custom_binary_crossentropy
 
 
 def create_model(config):
@@ -28,7 +30,7 @@ def create_model(config):
 	inputs = Input((input_length, 1), name='input')
 	feature_extractor = get_feature_layer(feature_type, feature_nu, sample_rate)
 	if (feature_type=="stft"):
-		feature_nu = feature_nu +1 
+		feature_nu = feature_nu+1 
 	sqz = Lambda(lambda q: K.squeeze(q, -1), name='squeeze_last_dim')
 	trans = transformer_classifier(
 			num_layers=8,
@@ -44,5 +46,11 @@ def create_model(config):
 	model.add(sqz)
 	model.add(BatchNormalization())
 	model.add(trans)
+
+	optimizer = Adam(lr=config["learning_rate"])
+	model.compile(optimizer=optimizer,
+					loss=custom_binary_crossentropy,
+					metrics=[Recall(), Precision(), custom_binary_accuracy])
+
 
 	return model
