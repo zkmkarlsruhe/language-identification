@@ -18,7 +18,7 @@ import tensorflow as tf
 
 
 def get_angles(pos, i, d_model):
-    angle_rates = 1 / (np.power(10000, (2 * (i // 2)) / (np.float32(d_model)) + K.epsilon) + K.epsilon)
+    angle_rates = 1 / (np.power(10000, (2 * (i // 2)) / (np.float32(d_model)) + K.epsilon()) + K.epsilon())
     return pos * angle_rates
 
 
@@ -60,7 +60,7 @@ def scaled_dot_product_attention(q, k, v, mask):
 
     # scale matmul_qk
     dk = tf.cast(tf.shape(k)[-1], tf.float32)
-    scaled_attention_logits = matmul_qk / (tf.math.sqrt(dk) + K.epsilon)
+    scaled_attention_logits = matmul_qk / (tf.math.sqrt(dk) + K.epsilon())
 
     # add the mask to the scaled tensor.
     if mask is not None:
