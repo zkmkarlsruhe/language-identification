@@ -261,7 +261,7 @@ def transformer_classifier(
 
     x = GlobalAvgPool1D()(x)
 
-    x = Dense(4 * n_classes, activation="selu")(x)
+    x = Dense(4 * n_classes, activation="gelu")(x)
 
     out = Dense(n_classes, activation="sigmoid")(x)
 
