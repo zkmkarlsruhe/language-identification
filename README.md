@@ -169,9 +169,14 @@ python train.py --config config_train.yaml
 ## TODO
 - evaluate the fairness of the model
 - report results
-- fix data augmentation speed
+- fix data augmentation execution speed
 - try transformer models
-- try X-Vector Speech features
+- try different features extractions:
+ - MFCC (included in this repo)
+ - [VGGish](https://tfhub.dev/google/vggish/1)
+ - [Speech Embedings](https://tfhub.dev/google/speech_embedding/1)
+ - [YamNet](https://tfhub.dev/google/yamnet/1)
+ - x-factor
 
 
 ## Further Reading
