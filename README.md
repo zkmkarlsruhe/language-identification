@@ -172,11 +172,11 @@ python train.py --config config_train.yaml
 - fix data augmentation execution speed
 - try transformer models
 - try different features extractions:
- - MFCC (included in this repo)
- - [VGGish](https://tfhub.dev/google/vggish/1)
- - [Speech Embedings](https://tfhub.dev/google/speech_embedding/1)
- - [YamNet](https://tfhub.dev/google/yamnet/1)
- - x-factor
+  - MFCC (included in this repo)
+  - [VGGish](https://tfhub.dev/google/vggish/1)
+  - [Speech Embedings](https://tfhub.dev/google/speech_embedding/1)
+  - [YamNet](https://tfhub.dev/google/yamnet/1)
+  - x-factor
 
 
 ## Further Reading
