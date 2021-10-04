@@ -174,7 +174,7 @@ python train.py --config config_train.yaml
 - try different features extractions:
   - MFCC (included in this repo)
   - [VGGish](https://tfhub.dev/google/vggish/1)
-  - [Speech Embedings](https://tfhub.dev/google/speech_embedding/1)
+  - [Trill](https://tfhub.dev/google/nonsemantic-speech-benchmark/trill/3)
   - [YamNet](https://tfhub.dev/google/yamnet/1)
   - x-factor
 
