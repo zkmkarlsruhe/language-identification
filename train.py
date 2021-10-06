@@ -24,9 +24,9 @@ from tensorflow.keras.models import load_model
 
 import src.models as models
 from src.utils.training_utils import CustomCSVCallback, get_saved_model_function, visualize_results
-from src.utils.training_utils import create_dataset_from_set_of_files, tf_normalize
+from src.utils.training_utils import create_dataset_from_set_of_files
+from src.utils.training_utils import tf_normalize, get_trill_model, get_yamnet_model
 from src.audio.augment import AudioAugmenter
-
 
 
 def train(config_path, log_dir):
@@ -46,6 +46,7 @@ def train(config_path, log_dir):
 	learning_rate = config["learning_rate"]
 	model_name = config["model"]
 	model_path = config["model_path"]
+	feature_type = config["feature_type"]
 
 	# create or load the model
 	if model_path != "":
@@ -58,6 +59,13 @@ def train(config_path, log_dir):
 						loss=CategoricalCrossentropy(),
 						metrics=[Recall(), Precision(), CategoricalAccuracy()])
 	print(model.summary())
+
+	if feature_type == 'trill':
+		m = get_trill_model(sample_rate=sample_rate, trainable=False)
+	elif feature_type == 'yamnet':
+		m = get_yamnet_model(sample_rate=sample_rate, trainable=False)
+	else:
+		m = None
 
 	# load the dataset
 	train_ds = create_dataset_from_set_of_files(
@@ -80,7 +88,14 @@ def train(config_path, log_dir):
 	# normalize audio and expand by one dimension (as required by feature extraction)
 	def process(audio, label):
 		audio = tf_normalize(audio)
+		if m:
+			if feature_type == 'trill':
+				audio = m(audio, sample_rate)['embedding']
+			elif feature_type == 'yamnet':
+				audio = m(audio)[1]
+		# else:
 		audio = tf.expand_dims(audio, axis=-1)
+		
 		return audio, label
 	train_ds = train_ds.map(process, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 	val_ds = val_ds.map(process, num_parallel_calls=tf.data.experimental.AUTOTUNE)
@@ -110,6 +125,11 @@ def train(config_path, log_dir):
 		# model_checkpoint_callback,
 		# early_stopping_callback, 
 		]
+
+	for x in train_ds.take(10):
+		print(x)
+
+	exit()
 
 	# Training
 	history = model.fit(x=train_ds, epochs=num_epochs,

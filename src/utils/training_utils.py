@@ -20,6 +20,7 @@ from tensorflow.keras.losses import CategoricalCrossentropy as CrossLoss
 from tensorflow.keras.metrics import Precision, Recall, CategoricalAccuracy, CategoricalCrossentropy
 from tensorflow.keras.utils import Progbar
 
+import tensorflow_hub as hub	
 
 from kapre.composed import get_stft_magnitude_layer
 from kapre.composed import get_melspectrogram_layer
@@ -68,10 +69,10 @@ def tf_normalize(signal):
 	highest = tf.math.abs(tf.math.reduce_max(signal))
 	lowest = tf.math.abs(tf.math.reduce_min(signal))
 	abs_max = tf.math.maximum(highest, lowest)
-	return tf.math.divide(signal, abs_max)
+	return tf.math.multiply(signal, 1/abs_max)
 
 
-def get_feature_layer(feature_type, feature_nu, sample_rate):	
+def get_feature_layer(feature_type, feature_nu, sample_rate, trainable=True):	
 	"""returns a keras.layer for given feature type and number
 
 	Args:
@@ -96,6 +97,31 @@ def get_feature_layer(feature_type, feature_nu, sample_rate):
 		return None
 	return m
 
+# https://tfhub.dev/google/nonsemantic-speech-benchmark/trill-distilled/3
+def get_trill_model(sample_rate, trainable):
+
+	trill_url = 'https://tfhub.dev/google/nonsemantic-speech-benchmark/trill/3'
+	# trill_url = 'https://tfhub.dev/google/nonsemantic-speech-benchmark/trill-distilled/3'
+	
+	# layer = hub.KerasLayer(trill_url, 
+	# 	trainable=trainable,
+	# 	arguments={'sample_rate': tf.constant(sample_rate, tf.int32)},
+	# 	output_key='embedding',
+	# 	# output_key='layer19'
+	# 	)
+
+	model = hub.load(trill_url)
+	return model
+
+# https://tfhub.dev/google/nonsemantic-speech-benchmark/trill-distilled/3
+def get_yamnet_model(sample_rate, trainable):
+	if trainable:
+		print("YAMNET is not trainable: https://github.com/tensorflow/models/issues/8425")
+
+	# yamnet_url = 'https://tfhub.dev/google/yamnet/1'
+	# return hub.KerasLayer(yamnet_url)
+
+	return tf.keras.models.load_model('my_yamnet')
 
 def write_csv(logging_dir, epoch, logs={}):
 		with open(logging_dir, mode='a') as log_file:

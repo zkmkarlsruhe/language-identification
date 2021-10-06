@@ -30,12 +30,23 @@ def create_model(config):
 
 	feature_extractor = get_feature_layer(feature_type, feature_nu, sample_rate)
 
-	inputs = Input((input_length, 1), name='input')
+	input_shape = (input_length, 1)
+	if feature_type == "yamnet": # the desired output are the features
+		input_shape = (None, 1024, 1)
+	elif  feature_type == "trill":
+		input_shape = (None, 512, 1)
 
-	x = feature_extractor(inputs)
-	feature_extractor.trainable = False
+	inputs = Input(input_shape, name='input')
+
+	if not feature_type == "yamnet" and not feature_type == "trill":
+		x = feature_extractor(inputs)
+
+	if feature_type == "yamnet": # the desired output are the features
+		x = inputs
+	elif feature_type == "trill": # the desired output are the features
+		x = inputs
+
 	x = BatchNormalization()(x)
-	
 	x = Conv2D(10, (5, 1), activation='relu', padding='same')(x)
 	x = BatchNormalization()(x)
 	x = Conv2D(1, (5, 1), activation='relu', padding='same')(x)
