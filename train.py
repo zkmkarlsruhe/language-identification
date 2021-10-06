@@ -133,10 +133,15 @@ if __name__ == "__main__":
 	parser.add_argument('--config', default="config_train.yaml", 
 						help="Path to the required config file.")
 	cli_args = parser.parse_args()
-
-	physical_devices = tf.config.list_physical_devices('GPU')
-	tf.config.experimental.set_memory_growth(physical_devices[0], True)
 	
+	gpus = tf.config.experimental.list_physical_devices('GPU')
+	if gpus:	
+		try:
+			for gpu in gpus:
+				tf.config.experimental.set_memory_growth(gpu, True)
+		except RuntimeError as e:
+			print(e)
+
 	# copy models & config for later
 	log_dir = os.path.join("logs", datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
 	print("Logging to {}".format(log_dir))
