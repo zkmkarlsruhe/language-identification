@@ -30,9 +30,9 @@ from yaml import load
 
 def sentence_is_too_short(sentence, language):
     if language == "chinese_hk":
-        return len(sentence) < 3
+        return len(str(sentence)) < 3
     else:
-        return len(sentence) < 6
+        return len(str(sentence)) < 6
 
 
 def traverse_csv(language, input_dir, output_dir, max_chops, 
