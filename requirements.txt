@@ -1,4 +1,4 @@
-auditok
+auditok>=0.2
 pydub
 tensorflow==2.4
 nlpaug
