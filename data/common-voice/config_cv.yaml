@@ -1,8 +1,9 @@
 # Common Voice to Wav
-cv_input_dir: "/data/common_voice/corpus6.1/"
-cv_output_dir: "/data/common_voice_filtered/five_sec_vad"
+cv_input_dir: "/data/common_voice/corpus7/"
+cv_output_dir: "/data/common_voice_filtered/corpus7_20"
 
-max_chops: [30000, 3000, 1000]
+#max_chops: [30000, 3000, 1000]
+max_chops: [3, 3, 3]
 allowed_downvotes: 0
 audio_length_s: 5
 min_length_s: 2.5
@@ -17,8 +18,20 @@ parallelize: True
 remove_raw: True
 
 language_table:
-  - lang: "chinese"
-    dir: "zh-CN"
+  - lang: "arabic"
+    dir: "ar"
+  - lang: "bashkir"
+    dir: "ba"
+  - lang: "belarusian"
+    dir: "be"
+  - lang: "catalan"
+    dir: "ca"
+  - lang: "basque"
+    dir: "eu"
+  - lang: "chinese_hk"
+    dir: "zh-HK"
+  - lang: "dutch"
+    dir: "nl"
   - lang: "english"
     dir: "en"
   - lang: "farsi"
@@ -29,9 +42,19 @@ language_table:
     dir: "de"
   - lang: "italian"
     dir: "it"
+  - lang: "kabyle"
+    dir: "kab"
   - lang: "polish"
     dir: "pl"
+  - lang: "portuguese"
+    dir: "pt"
   - lang: "russian"
     dir: "ru"
   - lang: "spanish"
     dir: "es"
+  - lang: "tamil"
+    dir: "ta"
+  - lang: "thai"
+    dir: "th"
+  - lang: "welch"
+    dir: "cy"
