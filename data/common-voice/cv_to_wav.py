@@ -163,6 +163,7 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
             line = genders[gender_selected].pop()
 
             # get meta data
+            uid             = line[0]
             mp3_filename    = line[1]
             age             = line[5]
             gender          = line[6]
@@ -202,7 +203,7 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
                 wav_path = os.path.join(output_dir_wav, chip_name + ".wav")
                 wav.write(wav_path, chip_fs, chip_data)
                 
-                output_clips.append([chip_name + ".wav", age, gender, accent, locale])
+                output_clips.append([chip_name + ".wav", age, gender, accent, locale, uid])
                 gender_counter[gender_selected] += 1
 
                 # remove the intermediate file
@@ -216,7 +217,7 @@ def traverse_csv(language, input_dir, output_dir, max_chops,
         # --- end loop ---
 
         # write to csv
-        column_names = ["path", "age", "gender", "accent", "locale"]
+        column_names = ["path", "age", "gender", "accent", "locale", "uid"]
         pd.DataFrame(output_clips, columns = column_names).to_csv(output_clips_file, sep='\t')
 
         produced_files = sum(gender_counter)
