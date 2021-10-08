@@ -127,6 +127,8 @@ python data/common-voice/cv_to_wav.py --help
 ```
 __Note:__ Modify the config file accordingly, e.g. replace `cv_input_dir` with `$CV_DL_DIR` and `cv_output_dir` with `$DATA_DIR` (the final dataset directory). Don't forget to name the languages in the table at the bottom.
 
+__Note:__ audio extraction using auditok is currently broken! Please make sure `use_vad` is set to `True` in the config file. 
+
 ##### Linux
 ```shell
 python data/common-voice/cv_to_wav.py --config data/common-voice/config_cv.yaml
