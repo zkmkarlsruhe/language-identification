@@ -14,20 +14,29 @@ BSD Simplified License.
 
 ## Caveats
 Please take the following point into account when using our code.
-- Spoken Language Identification is not a trivial problem. In order to teach a machine to perfectly recognize every small sentence of a language you need the full spectrum of a language. This requires absurd amounts of data.
+- Spoken Language Identification is not a trivial problem. In order to teach a machine to perfectly recognize every small excerpt of a language you need the full spectrum of a language. This requires absurd amounts of data.
 - Due to acoustical overlap of languages, the task gets harder the more languages there are to distinguish from another.
 - The challenge gets even more difficult when considering different accents, ages, sex and other traits that influence the vocal tract.
-- In our first experiments we are able to distinguish 7 languages (and noise) with an overall accuracy of 83% on the Common Voice data set. Common Voice is a very diverse, noisy and community driven collection of spoken language.
-- In order to achieve our final goal of a more inclusive museum experience, we need to focus on fairness. However, as of now we haven't evaluated or mitigated bias in our system.
+- Our current model can distinguish 7 languages (and noise) with an overall accuracy of 85% on the Common Voice data set. Common Voice is a very diverse, noisy and community driven collection of spoken language. The fact that it is noisy makes it a good candidate for real world usage.
+- In order to achieve our final goal of a more inclusive museum experience, we need to focus on fairness. However, as of now we haven't evaluated or mitigated bias in our system, except for appyling a gender neutral sampling approach.
 
 
 ## Trained Models
-Our trained models can be downloaded from [this location](https://cloud.zkm.de/index.php/s/83LwnXT9xDsyxGf). The `AttRnn` model expects 5 seconds of normalized audio sampled at 16kHz and outputs probabilities for Noise, English, French, German and Spanish in this order.
+Our trained models can be downloaded from [this location](https://cloud.zkm.de/index.php/s/83LwnXT9xDsyxGf). All models expect 5 seconds of normalized audio sampled at 16kHz and output probabilities first for noise and then for each language in alphanumeric order. 
+- AttRnn: Noise, English, French, German and Spanish.
+- AttRnn7Lang: Noise, Chinese (main land), English, French, German, Italian, Spanish and Russian.
+  
+__Note__: these models are still subject to unbalanced training data (no oversampling) and most likely biased towards male samples. A new model is currently being prepared.
 
 ## Demonstration
 If you are only interested in running the trained model then please check out our notebook in the `demo/` folder. The notebook was developed to be [run in Google Colab](https://colab.research.google.com/github/zkmkarlsruhe/language-identification/blob/main/demo/LID_demo.ipynb). It will guide you through the necessary steps to run the model in your application.
 
 You can also check out our [OpenFrameworks demonstration](https://git.zkm.de/Hertz-Lab/Research/intelligent-museum/LanguageIdentifier) which utilizes our [ofxTensorFlow2](https://github.com/zkmkarlsruhe/ofxTensorFlow2) addon.
+
+
+## Results
+This is a small experiment on how much data is needed to distinguish two similar languages. Here we challenged the network to separate English from German. As you can see 30,000 samples and data augmentation is still not enough for our model. With 5 seconds per sample this amounts to over 40 hours of speech data. For most languages 40 hours of training data is not available in Common Voice, yet.
+![en_vs_de](media/en_vs_de.png)
 
 ## Training Setup
 We highly recommend to use a (recent) GPU to train a neural network.
