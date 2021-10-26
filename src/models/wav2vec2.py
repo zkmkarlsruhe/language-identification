@@ -20,8 +20,6 @@ def create_model(config):
 
 	audio_length_s = config["audio_length_s"] 
 	sample_rate = config["sample_rate"]
-	feature_nu = config["feature_nu"]
-	feature_type = config["feature_type"]
 	input_length = audio_length_s * sample_rate
 
 
@@ -33,15 +31,9 @@ def create_model(config):
 	from tensorflow.keras.models import load_model
 	model_path = 'wav2vec2'
 	feature_extractor = load_model(model_path)
+	feature_extractor.trainable = False
 
 	inputs = Input((input_length), name='input')
-
-
-
-	import tensorflow_hub as hub
-
-
-
 
 	model = Sequential()
 	model.add(inputs)
@@ -50,6 +42,8 @@ def create_model(config):
 	model.add(Flatten())
 	# model.add(GlobalAveragePooling2D())
 	# model.add(Dropout(0.5))
-	model.add(Dense(len(config["languages"]), activation='softmax'))
+	model.add(Dense(len(config["languages"]),
+	 activation='softmax'
+	))
 
 	return model
