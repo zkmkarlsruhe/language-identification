@@ -50,7 +50,7 @@ def create_dataset_from_set_of_files(ds_dir, languages):
 		# read the wav file
 		x = tf.io.read_file(file_path)
 		x, _ = tf.audio.decode_wav(x)
-		# x = tf.squeeze(x, axis=-1)
+		x = tf.squeeze(x, axis=-1)
 		
 		# get label and convert to categorical 
 		label = tf.strings.split(file_path, os.sep)[-2]

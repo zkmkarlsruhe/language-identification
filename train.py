@@ -80,7 +80,8 @@ def train(config_path, log_dir):
 	# normalize audio and expand by one dimension (as required by feature extraction)
 	def process(audio, label):
 		audio = tf_normalize(audio)
-		audio = tf.expand_dims(audio, axis=-1)
+		if model_name != "wav2vec2":
+			audio = tf.expand_dims(audio, axis=-1)
 		return audio, label
 	train_ds = train_ds.map(process, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 	val_ds = val_ds.map(process, num_parallel_calls=tf.data.experimental.AUTOTUNE)
@@ -111,9 +112,12 @@ def train(config_path, log_dir):
 		# early_stopping_callback, 
 		]
 
+
 	# Training
 	history = model.fit(x=train_ds, epochs=num_epochs,
-						callbacks=callbacks, validation_data=val_ds)
+						callbacks=callbacks, 
+						validation_data=val_ds
+						)
 
 
 	# TODO Do evaluation on model with best validation accuracy
