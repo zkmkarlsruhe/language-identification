@@ -31,7 +31,7 @@ __Note__: these models are still subject to unbalanced training data (no oversam
 ## Demonstration
 If you are only interested in running the trained model then please check out our notebook in the `demo/` folder. The notebook was developed to be [run in Google Colab](https://colab.research.google.com/github/zkmkarlsruhe/language-identification/blob/main/demo/LID_demo.ipynb). It will guide you through the necessary steps to run the model in your application.
 
-You can also check out our [OpenFrameworks demonstration](https://git.zkm.de/Hertz-Lab/Research/intelligent-museum/LanguageIdentifier) which utilizes our [ofxTensorFlow2](https://github.com/zkmkarlsruhe/ofxTensorFlow2) addon.
+You can also check out our [OpenFrameworks demonstration](https://github.com/zkmkarlsruhe/LanguageIdentifier) which utilizes our [ofxTensorFlow2](https://github.com/zkmkarlsruhe/ofxTensorFlow2) addon.
 
 
 ## Results
